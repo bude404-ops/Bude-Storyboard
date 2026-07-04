@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BUDE Wallet Tracker</title>
 <style>
-  :root{--bg:#0b0f19;--card:#111827;--accent:#00d4aa;--text:#e2e8f0;--muted:#94a3b8;--danger:#ef4444;--gold:#f59e0b;}
+  :root{--bg:#0b0f19;--card:#111827;--accent:#00d4aa;--text:#e2e8f0;--muted:#94a3b8;--danger:#ef4444;--gold:#f59e0b;--sol:#9945ff;}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;padding:12px;min-height:100vh}
   h1{text-align:center;font-size:1.4rem;margin-bottom:8px;color:var(--accent)}
@@ -25,6 +25,7 @@
   .wallet-addr{font-family:monospace;font-size:.8rem;word-break:break-all;flex:1}
   .wallet-tag{font-size:.65rem;padding:2px 8px;border-radius:4px;background:#1e3a5f;color:#60a5fa;margin-left:8px;white-space:nowrap}
   .wallet-tag.main{background:#14532d;color:var(--accent)}
+  .wallet-tag.sol{background:#2e1065;color:#c4b5fd}
   .wallet-balance{font-size:.85rem;font-weight:600;margin-left:8px;white-space:nowrap}
   .tx-row{padding:8px;border-bottom:1px solid #1f2937;font-size:.8rem}
   .tx-row:last-child{border-bottom:none}
@@ -42,6 +43,7 @@
   .loading{text-align:center;color:var(--muted);padding:20px;font-size:.9rem}
   .error{color:var(--danger);text-align:center;padding:12px;font-size:.85rem}
   .hidden{display:none}
+  .sol-badge{background:var(--sol);color:#fff;font-size:.7rem;padding:2px 8px;border-radius:4px;margin-left:6px}
   @media(max-width:400px){.grid{grid-template-columns:1fr}.wallet-row{flex-direction:column;align-items:flex-start}.wallet-balance{margin-left:0;margin-top:4px}}
 </style>
 </head>
@@ -55,6 +57,7 @@
   <select id="chain">
     <option value="btc">Bitcoin (BTC)</option>
     <option value="eth">Ethereum (ETH)</option>
+    <option value="sol">Solana (SOL) ⚡</option>
     <option value="doge">Dogecoin (DOGE)</option>
     <option value="ltc">Litecoin (LTC)</option>
   </select>
@@ -105,12 +108,17 @@
 <div id="status" class="hidden"></div>
 
 <script>
+// ============ API CONFIG ============
 const APIS = {
-  btc: { url: addr => `https://api.blockcypher.com/v1/btc/main/addrs/${addr}/full?limit=50`, parser: parseBlockcypher },
-  eth: { url: addr => `https://api.blockcypher.com/v1/eth/main/addrs/${addr}/full?limit=50`, parser: parseBlockcypher },
-  doge:{ url: addr => `https://api.blockcypher.com/v1/doge/main/addrs/${addr}/full?limit=50`, parser: parseBlockcypher },
-  ltc: { url: addr => `https://api.blockcypher.com/v1/ltc/main/addrs/${addr}/full?limit=50`, parser: parseBlockcypher }
+  btc:  { type: 'blockcypher', url: addr => `https://api.blockcypher.com/v1/btc/main/addrs/${addr}/full?limit=50`, parser: parseBlockcypher },
+  eth:  { type: 'blockcypher', url: addr => `https://api.blockcypher.com/v1/eth/main/addrs/${addr}/full?limit=50`, parser: parseBlockcypher },
+  doge: { type: 'blockcypher', url: addr => `https://api.blockcypher.com/v1/doge/main/addrs/${addr}/full?limit=50`, parser: parseBlockcypher },
+  ltc:  { type: 'blockcypher', url: addr => `https://api.blockcypher.com/v1/ltc/main/addrs/${addr}/full?limit=50`, parser: parseBlockcypher },
+  sol:  { type: 'solana', url: () => 'https://api.mainnet.solana.com', parser: parseSolana }
 };
+
+const SYM = {btc:'BTC',eth:'ETH',sol:'SOL',doge:'DOGE',ltc:'LTC'};
+const DEC = {btc:1e8,eth:1e18,sol:1e9,doge:1e8,ltc:1e8};
 
 let globalData = { main: null, derived: [], txs: [] };
 
@@ -129,6 +137,7 @@ function status(msg, isError=false){
 
 function hideStatus(){ document.getElementById('status').classList.add('hidden'); }
 
+// ============ MAIN TRACK ============
 async function track(){
   const addr = document.getElementById('addr').value.trim();
   const chain = document.getElementById('chain').value;
@@ -141,13 +150,19 @@ async function track(){
   globalData = { main: {address: addr, chain: chain, balance: 0, tx_count: 0}, derived: [], txs: [] };
   
   try {
-    let data = await fetchWithTimeout(APIS[chain].url(addr), 8000);
-    let parsed = APIS[chain].parser(data, addr, chain);
+    let parsed;
+    if(chain === 'sol'){
+      parsed = await fetchSolana(addr);
+    } else {
+      const data = await fetchWithTimeout(APIS[chain].url(addr), 10000);
+      parsed = APIS[chain].parser(data, addr, chain);
+    }
     
     globalData.main.balance = parsed.balance;
     globalData.main.tx_count = parsed.tx_count;
     globalData.txs = parsed.txs;
     
+    // Extract derived wallets
     const sentTo = new Set();
     let totalOut = 0;
     parsed.txs.forEach(tx => {
@@ -157,43 +172,108 @@ async function track(){
       }
     });
     
-    const derivedAddrs = Array.from(sentTo).slice(0, 20);
-    globalData.derived = await Promise.all(
-      derivedAddrs.map(async (dAddr, i) => {
-        await sleep(i * 300);
-        const bal = await quickBalance(chain, dAddr);
-        return { address: dAddr, balance: bal, tag: 'Derived' };
-      })
-    );
+    // Fetch balances for derived wallets
+    const derivedAddrs = Array.from(sentTo).slice(0, 15);
+    globalData.derived = [];
+    for(let i=0; i<derivedAddrs.length; i++){
+      await sleep(i * 400);
+      const bal = await quickBalance(chain, derivedAddrs[i]);
+      globalData.derived.push({ address: derivedAddrs[i], balance: bal, tag: 'Derived' });
+    }
     
     globalData.main.totalOut = totalOut;
     render();
     hideStatus();
   } catch(e) {
     console.error(e);
-    status('Error: ' + e.message + '<br><small>Try a different address or chain. BlockCypher has rate limits.</small>', true);
+    status('Error: ' + e.message + '<br><small>Public APIs have rate limits. Wait a few seconds and retry.</small>', true);
   }
   document.getElementById('trackBtn').disabled = false;
 }
 
-async function fetchWithTimeout(url, ms){
-  const ctrl = new AbortController();
-  const t = setTimeout(()=>ctrl.abort(), ms);
-  const res = await fetch(url, {signal: ctrl.signal});
-  clearTimeout(t);
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  return res.json();
+// ============ SOLANA RPC ============
+async function fetchSolana(addr){
+  const rpc = 'https://api.mainnet.solana.com';
+  
+  // Get balance
+  const balRes = await fetch(rpc, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({jsonrpc:'2.0',id:1,method:'getBalance',params:[addr]})
+  });
+  const balData = await balRes.json();
+  const balance = (balData.result?.value || 0) / 1e9;
+  
+  // Get signatures (tx history)
+  const sigRes = await fetch(rpc, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({jsonrpc:'2.0',id:1,method:'getSignaturesForAddress',params:[addr,{limit:50}]})
+  });
+  const sigData = await sigRes.json();
+  const signatures = sigData.result || [];
+  
+  // Fetch each transaction detail
+  const txs = [];
+  for(const sig of signatures){
+    await sleep(100);
+    const txRes = await fetch(rpc, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({jsonrpc:'2.0',id:1,method:'getTransaction',params:[sig.signature,{encoding:'json',maxSupportedTransactionVersion:0}]})
+    });
+    const txData = await txRes.json();
+    const tx = txData.result;
+    if(!tx) continue;
+    
+    const meta = tx.meta || {};
+    const preBal = meta.preBalances || [];
+    const postBal = meta.postBalances || [];
+    const accKeys = tx.transaction?.message?.accountKeys || [];
+    const ourIdx = accKeys.indexOf(addr);
+    
+    let amount = 0;
+    let direction = 'in';
+    let outputs = [];
+    
+    if(ourIdx >= 0){
+      const diff = (postBal[ourIdx] || 0) - (preBal[ourIdx] || 0);
+      amount = Math.abs(diff) / 1e9;
+      direction = diff < 0 ? 'out' : 'in';
+    }
+    
+    // Extract destination accounts from instructions
+    const instructions = tx.transaction?.message?.instructions || [];
+    instructions.forEach(ix => {
+      const dest = accKeys[ix.parsed?.info?.destination] || accKeys[ix.accounts?.[1]];
+      if(dest && dest !== addr) outputs.push(dest);
+    });
+    
+    // Also from account keys
+    accKeys.forEach((k, i) => {
+      if(k !== addr && !outputs.includes(k)) outputs.push(k);
+    });
+    
+    txs.push({
+      hash: sig.signature,
+      direction: direction,
+      amount: amount,
+      time: tx.blockTime ? new Date(tx.blockTime * 1000).toISOString() : null,
+      outputs: outputs,
+      inputs: [addr]
+    });
+  }
+  
+  return {
+    balance: balance,
+    tx_count: signatures.length,
+    txs: txs
+  };
 }
 
-async function quickBalance(chain, addr){
-  try {
-    const data = await fetchWithTimeout(APIS[chain].url(addr), 5000);
-    return (data.balance / (chain==='eth'?1e18:1e8)).toFixed(6);
-  } catch(e) { return '?.?????'; }
-}
-
+// ============ BLOCKCYPHER PARSER ============
 function parseBlockcypher(data, addr, chain){
-  const div = chain==='eth'?1e18:1e8;
+  const div = DEC[chain];
   const txs = (data.txrefs || data.txs || []).map(tx => {
     const inputs = tx.inputs?.map(i=>i.addresses?.[0]).filter(Boolean) || [];
     const outputs = tx.outputs?.map(o=>o.addresses?.[0]).filter(Boolean) || [];
@@ -217,12 +297,40 @@ function parseBlockcypher(data, addr, chain){
   };
 }
 
+// ============ UTILS ============
+async function fetchWithTimeout(url, ms){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  const res = await fetch(url, {signal: ctrl.signal});
+  clearTimeout(t);
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  return res.json();
+}
+
+async function quickBalance(chain, addr){
+  try {
+    if(chain === 'sol'){
+      const res = await fetch('https://api.mainnet.solana.com', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({jsonrpc:'2.0',id:1,method:'getBalance',params:[addr]})
+      });
+      const data = await res.json();
+      return ((data.result?.value || 0) / 1e9).toFixed(6);
+    } else {
+      const data = await fetchWithTimeout(APIS[chain].url(addr), 5000);
+      return ((data.balance || data.final_balance || 0) / DEC[chain]).toFixed(6);
+    }
+  } catch(e) { return '?.?????'; }
+}
+
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
+// ============ RENDER ============
 function render(){
   const m = globalData.main;
   const chain = document.getElementById('chain').value;
-  const sym = {btc:'BTC',eth:'ETH',doge:'DOGE',ltc:'LTC'}[chain];
+  const sym = SYM[chain];
   
   document.getElementById('mainBal').textContent = (typeof m.balance==='number'?m.balance.toFixed(6):m.balance) + ' ' + sym;
   document.getElementById('mainTx').textContent = m.tx_count;
@@ -230,6 +338,7 @@ function render(){
   document.getElementById('totalOut').textContent = (typeof m.totalOut==='number'?m.totalOut.toFixed(6):'?.?????') + ' ' + sym;
   document.getElementById('mainAddrDisplay').textContent = m.address;
   
+  // Derived wallets
   const dList = document.getElementById('derivedList');
   if(globalData.derived.length === 0){
     dList.innerHTML = '<div class="loading">No derived wallets found.<br><small>This wallet hasn\'t sent funds to any new addresses yet.</small></div>';
@@ -237,13 +346,14 @@ function render(){
     dList.innerHTML = globalData.derived.map((w,i) => `
       <div class="wallet-row" onclick="document.getElementById('addr').value='${w.address}';window.scrollTo(0,0)">
         <span class="wallet-addr">${w.address}</span>
-        <span class="wallet-tag">Derived #${i+1}</span>
+        <span class="wallet-tag ${chain==='sol'?'sol':''}">${chain==='sol'?'SOL':'Derived'} #${i+1}</span>
         <span class="wallet-balance">${w.balance} ${sym}</span>
         <button class="copy-btn" onclick="event.stopPropagation();copyText('${w.address}')">Copy</button>
       </div>
     `).join('');
   }
   
+  // Transactions
   const tList = document.getElementById('txList');
   if(globalData.txs.length === 0){
     tList.innerHTML = '<div class="loading">No transactions found.</div>';
