@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BUDE Wallet Tracker</title>
+<style>
+  :root{--bg:#0b0f19;--card:#111827;--accent:#00d4aa;--text:#e2e8f0;--muted:#94a3b8;--danger:#ef4444;--gold:#f59e0b;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;padding:12px;min-height:100vh}
+  h1{text-align:center;font-size:1.4rem;margin-bottom:8px;color:var(--accent)}
+  .subtitle{text-align:center;color:var(--muted);font-size:0.85rem;margin-bottom:16px}
+  .card{background:var(--card);border:1px solid #1f2937;border-radius:12px;padding:14px;margin-bottom:12px}
+  label{display:block;color:var(--muted);font-size:0.8rem;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+  input,select,button{width:100%;padding:12px;border-radius:8px;border:1px solid #374151;background:#0b0f19;color:var(--text);font-size:1rem;margin-bottom:8px}
+  button{background:var(--accent);color:#000;font-weight:700;border:none;cursor:pointer;transition:opacity .2s}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button:active{transform:scale(.98)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat{background:#0b0f19;border-radius:8px;padding:10px;text-align:center}
+  .stat-value{font-size:1.1rem;font-weight:700;color:var(--accent)}
+  .stat-label{font-size:.7rem;color:var(--muted);margin-top:2px}
+  .wallet-row{display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid #1f2937;cursor:pointer}
+  .wallet-row:last-child{border-bottom:none}
+  .wallet-addr{font-family:monospace;font-size:.8rem;word-break:break-all;flex:1}
+  .wallet-tag{font-size:.65rem;padding:2px 8px;border-radius:4px;background:#1e3a5f;color:#60a5fa;margin-left:8px;white-space:nowrap}
+  .wallet-tag.main{background:#14532d;color:var(--accent)}
+  .wallet-balance{font-size:.85rem;font-weight:600;margin-left:8px;white-space:nowrap}
+  .tx-row{padding:8px;border-bottom:1px solid #1f2937;font-size:.8rem}
+  .tx-row:last-child{border-bottom:none}
+  .tx-hash{font-family:monospace;color:var(--accent);word-break:break-all}
+  .tx-dir{display:inline-block;padding:2px 6px;border-radius:4px;font-size:.7rem;font-weight:700;margin-right:6px}
+  .tx-in{background:#14532d;color:var(--accent)}
+  .tx-out{background:#450a0a;color:var(--danger)}
+  .tabs{display:flex;gap:4px;margin-bottom:12px}
+  .tab{flex:1;padding:10px;text-align:center;background:#0b0f19;border:1px solid #374151;border-radius:8px;cursor:pointer;font-size:.85rem}
+  .tab.active{background:var(--accent);color:#000;font-weight:700;border-color:var(--accent)}
+  .panel{display:none}
+  .panel.active{display:block}
+  .copy-btn{background:#1f2937;color:var(--text);font-size:.75rem;padding:4px 10px;border-radius:6px;border:1px solid #374151;cursor:pointer;margin-left:8px}
+  .copy-btn:active{background:#374151}
+  .loading{text-align:center;color:var(--muted);padding:20px;font-size:.9rem}
+  .error{color:var(--danger);text-align:center;padding:12px;font-size:.85rem}
+  .hidden{display:none}
+  @media(max-width:400px){.grid{grid-template-columns:1fr}.wallet-row{flex-direction:column;align-items:flex-start}.wallet-balance{margin-left:0;margin-top:4px}}
+</style>
+</head>
+<body>
+
+<h1>🔍 BUDE Wallet Tracker</h1>
+<p class="subtitle">Track a main wallet + all wallets it created (sent to)</p>
+
+<div class="card">
+  <label>Blockchain</label>
+  <select id="chain">
+    <option value="btc">Bitcoin (BTC)</option>
+    <option value="eth">Ethereum (ETH)</option>
+    <option value="doge">Dogecoin (DOGE)</option>
+    <option value="ltc">Litecoin (LTC)</option>
+  </select>
+  <label>Main Wallet Address</label>
+  <input type="text" id="addr" placeholder="Enter wallet address..." autocomplete="off">
+  <button id="trackBtn" onclick="track()">🔎 Track Wallet</button>
+</div>
+
+<div id="resultArea" class="hidden">
+  <div class="tabs">
+    <div class="tab active" onclick="showPanel('overview')">Overview</div>
+    <div class="tab" onclick="showPanel('derived')">Derived Wallets</div>
+    <div class="tab" onclick="showPanel('txs')">Transactions</div>
+  </div>
+
+  <div id="panel-overview" class="panel active">
+    <div class="card">
+      <div class="grid">
+        <div class="stat"><div class="stat-value" id="mainBal">—</div><div class="stat-label">Balance</div></div>
+        <div class="stat"><div class="stat-value" id="mainTx">—</div><div class="stat-label">Total TXs</div></div>
+        <div class="stat"><div class="stat-value" id="derivedCount">—</div><div class="stat-label">Derived Wallets</div></div>
+        <div class="stat"><div class="stat-value" id="totalOut">—</div><div class="stat-label">Total Sent</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <label>Main Wallet</label>
+      <div class="wallet-row" style="cursor:default">
+        <span class="wallet-addr" id="mainAddrDisplay"></span>
+        <span class="wallet-tag main">MAIN</span>
+        <button class="copy-btn" onclick="copyText(document.getElementById('mainAddrDisplay').textContent)">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-derived" class="panel">
+    <div class="card" id="derivedList">
+      <div class="loading">Click Track to discover derived wallets...</div>
+    </div>
+  </div>
+
+  <div id="panel-txs" class="panel">
+    <div class="card" id="txList">
+      <div class="loading">Transactions will appear here...</div>
+    </div>
+  </div>
+</div>
+
+<div id="status" class="hidden"></div>
+
+<script>
+const APIS = {
+  btc: { url: addr => `https://api.blockcypher.com/v1/btc/main/addrs/${addr}/full?limit=50`, parser: parseBlockcypher },
+  eth: { url: addr => `https://api.blockcypher.com/v1/eth/main/addrs/${addr}/full?limit=50`, parser: parseBlockcypher },
+  doge:{ url: addr => `https://api.blockcypher.com/v1/doge/main/addrs/${addr}/full?limit=50`, parser: parseBlockcypher },
+  ltc: { url: addr => `https://api.blockcypher.com/v1/ltc/main/addrs/${addr}/full?limit=50`, parser: parseBlockcypher }
+};
+
+let globalData = { main: null, derived: [], txs: [] };
+
+function showPanel(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+}
+
+function status(msg, isError=false){
+  const el = document.getElementById('status');
+  el.classList.remove('hidden');
+  el.innerHTML = `<div class="${isError?'error':'loading'}">${msg}</div>`;
+}
+
+function hideStatus(){ document.getElementById('status').classList.add('hidden'); }
+
+async function track(){
+  const addr = document.getElementById('addr').value.trim();
+  const chain = document.getElementById('chain').value;
+  if(!addr){ status('Enter a wallet address', true); return; }
+  
+  document.getElementById('trackBtn').disabled = true;
+  document.getElementById('resultArea').classList.remove('hidden');
+  status('Fetching blockchain data...');
+  
+  globalData = { main: {address: addr, chain: chain, balance: 0, tx_count: 0}, derived: [], txs: [] };
+  
+  try {
+    let data = await fetchWithTimeout(APIS[chain].url(addr), 8000);
+    let parsed = APIS[chain].parser(data, addr, chain);
+    
+    globalData.main.balance = parsed.balance;
+    globalData.main.tx_count = parsed.tx_count;
+    globalData.txs = parsed.txs;
+    
+    const sentTo = new Set();
+    let totalOut = 0;
+    parsed.txs.forEach(tx => {
+      if(tx.direction === 'out'){
+        totalOut += tx.amount;
+        tx.outputs.forEach(out => { if(out !== addr) sentTo.add(out); });
+      }
+    });
+    
+    const derivedAddrs = Array.from(sentTo).slice(0, 20);
+    globalData.derived = await Promise.all(
+      derivedAddrs.map(async (dAddr, i) => {
+        await sleep(i * 300);
+        const bal = await quickBalance(chain, dAddr);
+        return { address: dAddr, balance: bal, tag: 'Derived' };
+      })
+    );
+    
+    globalData.main.totalOut = totalOut;
+    render();
+    hideStatus();
+  } catch(e) {
+    console.error(e);
+    status('Error: ' + e.message + '<br><small>Try a different address or chain. BlockCypher has rate limits.</small>', true);
+  }
+  document.getElementById('trackBtn').disabled = false;
+}
+
+async function fetchWithTimeout(url, ms){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  const res = await fetch(url, {signal: ctrl.signal});
+  clearTimeout(t);
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  return res.json();
+}
+
+async function quickBalance(chain, addr){
+  try {
+    const data = await fetchWithTimeout(APIS[chain].url(addr), 5000);
+    return (data.balance / (chain==='eth'?1e18:1e8)).toFixed(6);
+  } catch(e) { return '?.?????'; }
+}
+
+function parseBlockcypher(data, addr, chain){
+  const div = chain==='eth'?1e18:1e8;
+  const txs = (data.txrefs || data.txs || []).map(tx => {
+    const inputs = tx.inputs?.map(i=>i.addresses?.[0]).filter(Boolean) || [];
+    const outputs = tx.outputs?.map(o=>o.addresses?.[0]).filter(Boolean) || [];
+    const weIn = inputs.includes(addr);
+    const weOut = outputs.includes(addr);
+    const direction = weIn && !weOut ? 'out' : 'in';
+    const amount = (tx.value || tx.total || 0) / div;
+    return {
+      hash: tx.tx_hash || tx.hash,
+      direction: direction,
+      amount: amount,
+      time: tx.confirmed || tx.received,
+      outputs: outputs,
+      inputs: inputs
+    };
+  });
+  return {
+    balance: (data.balance || data.final_balance || 0) / div,
+    tx_count: data.n_tx || data.txrefs?.length || 0,
+    txs: txs
+  };
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function render(){
+  const m = globalData.main;
+  const chain = document.getElementById('chain').value;
+  const sym = {btc:'BTC',eth:'ETH',doge:'DOGE',ltc:'LTC'}[chain];
+  
+  document.getElementById('mainBal').textContent = (typeof m.balance==='number'?m.balance.toFixed(6):m.balance) + ' ' + sym;
+  document.getElementById('mainTx').textContent = m.tx_count;
+  document.getElementById('derivedCount').textContent = globalData.derived.length;
+  document.getElementById('totalOut').textContent = (typeof m.totalOut==='number'?m.totalOut.toFixed(6):'?.?????') + ' ' + sym;
+  document.getElementById('mainAddrDisplay').textContent = m.address;
+  
+  const dList = document.getElementById('derivedList');
+  if(globalData.derived.length === 0){
+    dList.innerHTML = '<div class="loading">No derived wallets found.<br><small>This wallet hasn\'t sent funds to any new addresses yet.</small></div>';
+  } else {
+    dList.innerHTML = globalData.derived.map((w,i) => `
+      <div class="wallet-row" onclick="document.getElementById('addr').value='${w.address}';window.scrollTo(0,0)">
+        <span class="wallet-addr">${w.address}</span>
+        <span class="wallet-tag">Derived #${i+1}</span>
+        <span class="wallet-balance">${w.balance} ${sym}</span>
+        <button class="copy-btn" onclick="event.stopPropagation();copyText('${w.address}')">Copy</button>
+      </div>
+    `).join('');
+  }
+  
+  const tList = document.getElementById('txList');
+  if(globalData.txs.length === 0){
+    tList.innerHTML = '<div class="loading">No transactions found.</div>';
+  } else {
+    tList.innerHTML = globalData.txs.slice(0, 50).map(tx => `
+      <div class="tx-row">
+        <span class="tx-dir ${tx.direction==='in'?'tx-in':'tx-out'}">${tx.direction==='in'?'IN':'OUT'}</span>
+        <span class="tx-hash">${tx.hash}</span>
+        <div style="margin-top:4px;color:var(--muted)">
+          ${tx.amount.toFixed(6)} ${sym} · ${tx.time ? new Date(tx.time).toLocaleString() : 'Pending'}
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+function copyText(text){
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = event.target;
+    const old = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(()=>btn.textContent=old, 1200);
+  });
+}
+</script>
+</body>
+</html>
