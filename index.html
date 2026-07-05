@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BUDE Solana Forensics V6.3</title>
+
+<style>
+:root{
+  --bg:#0b0f19;
+  --card:#111827;
+  --txt:#e5e7eb;
+  --muted:#94a3b8;
+  --acc:#00d4aa;
+  --bad:#ef4444;
+  --warn:#f59e0b;
+  --line:#1f2937;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:var(--bg);
+  color:var(--txt);
+  font-family:system-ui,sans-serif;
+  padding:12px;
+}
+
+h1{
+  text-align:center;
+  font-size:1.2rem;
+  color:var(--acc);
+  margin-bottom:12px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:10px;
+}
+
+input,button{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border-radius:8px;
+  border:1px solid var(--line);
+  background:#0b0f19;
+  color:var(--txt);
+}
+
+button{
+  background:var(--acc);
+  color:#000;
+  font-weight:700;
+  border:none;
+  cursor:pointer;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  font-size:.85rem;
+  margin:4px 0;
+}
+
+.small{font-size:.75rem;color:var(--muted)}
+
+.hidden{display:none}
+
+.item{
+  font-size:.75rem;
+  padding:6px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.bad{color:var(--bad)}
+.warn{color:var(--warn)}
+.ok{color:var(--acc)}
+</style>
+</head>
+
+<body>
+
+<h1>🧠 BUDE SOLANA FORENSICS</h1>
+
+<div class="card">
+  <input id="ca" placeholder="Enter Solana Token CA..." />
+  <button onclick="scan()">Analyze Token</button>
+</div>
+
+<div class="card hidden" id="tokenBox"></div>
+<div class="card hidden" id="funderBox"></div>
+<div class="card hidden" id="kolBox"></div>
+
+<script>
+
+const RPC="https://api.mainnet-beta.solana.com";
+
+let STATE={ca:null,holders:[],funders:[]};
+
+async function rpc(body){
+  const r=await fetch(RPC,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(body)
+  });
+  return r.json();
+}
+
+/* ---------------- SAFE NORMALIZATION ---------------- */
+
+function normSupply(v){
+  if(!v) return 0;
+  return Number(v.uiAmountString || (Number(v.amount||0)/Math.pow(10,v.decimals||0)) || 0);
+}
+
+function normHolder(h,supply){
+  const amt = Number(h.amount || 0);
+  return {
+    address:h.address,
+    amount:amt,
+    pct:supply ? (amt/supply)*100 : 0
+  };
+}
+
+/* ---------------- SOLANA DATA ---------------- */
+
+async function getSupply(ca){
+  const j=await rpc({
+    jsonrpc:"2.0",
+    id:1,
+    method:"getTokenSupply",
+    params:[ca]
+  });
+  return j?.result?.value || null;
+}
+
+async function getHolders(ca){
+  const j=await rpc({
+    jsonrpc:"2.0",
+    id:1,
+    method:"getTokenLargestAccounts",
+    params:[ca]
+  });
+  return j?.result?.value || [];
+}
+
+/* ---------------- FUNDERS ---------------- */
+
+function detectFunders(holders){
+  return [...holders]
+    .sort((a,b)=>b.amount-a.amount)
+    .slice(0,5)
+    .map(h=>({
+      address:h.address,
+      pct:h.pct
+    }));
+}
+
+/* ---------------- AIRDROP / KOL ---------------- */
+
+function detectAirdrop(holders){
+
+  let score=0;
+  let signals=[];
+
+  const top = holders[0]?.pct || 0;
+
+  if(top > 45){
+    score+=35;
+    signals.push("HIGH SUPPLY CENTRALIZATION");
+  }
+
+  const top5 = holders.slice(0,5).reduce((a,b)=>a+(b.pct||0),0);
+
+  if(top5 > 70){
+    score+=25;
+    signals.push("CLUSTERED EARLY HOLDERS");
+  }
+
+  if(holders.length < 10){
+    score+=20;
+    signals.push("LOW HOLDER COUNT (CONTROLLED LAUNCH)");
+  }
+
+  if(holders.length > 20){
+    score+=10;
+    signals.push("WIDE DISTRIBUTION");
+  }
+
+  return {score,signals};
+}
+
+/* ---------------- MAIN SCAN ---------------- */
+
+async function scan(){
+
+  const ca=document.getElementById("ca").value.trim();
+  if(!ca) return;
+
+  STATE.ca=ca;
+
+  const supplyRaw = await getSupply(ca);
+  const holdersRaw = await getHolders(ca);
+
+  const supply = normSupply(supplyRaw);
+
+  const holders = holdersRaw.map(h=>normHolder(h,supply));
+
+  STATE.holders = holders;
+  STATE.funders = detectFunders(holders);
+
+  renderToken(supply,holders);
+  renderFunders();
+  renderKOL();
+}
+
+/* ---------------- UI ---------------- */
+
+function renderToken(supply,holders){
+
+  const el=document.getElementById("tokenBox");
+  el.classList.remove("hidden");
+
+  const top = holders[0]?.pct || 0;
+
+  let risk="LOW";
+  if(top > 40) risk="HIGH";
+  else if(top > 20) risk="MED";
+
+  el.innerHTML=`
+    <b>🪙 TOKEN OVERVIEW</b>
+    <div class="row"><span>Supply</span><span>${supply.toFixed(2)}</span></div>
+    <div class="row"><span>Holders</span><span>${holders.length}</span></div>
+    <div class="row"><span>Top Holder</span><span>${top.toFixed(2)}%</span></div>
+    <div class="row"><span>Risk</span><span class="${risk==='HIGH'?'bad':risk==='MED'?'warn':'ok'}">${risk}</span></div>
+  `;
+}
+
+function renderFunders(){
+
+  const el=document.getElementById("funderBox");
+  el.classList.remove("hidden");
+
+  el.innerHTML="<b>💰 FUNDERS</b>" +
+    STATE.funders.map(f=>
+      `<div class="item">${f.address} — <span class="ok">${f.pct.toFixed(2)}%</span></div>`
+    ).join("");
+}
+
+function renderKOL(){
+
+  const el=document.getElementById("kolBox");
+  el.classList.remove("hidden");
+
+  const r = detectAirdrop(STATE.holders);
+
+  const level =
+    r.score > 60 ? "🔴 HIGH AIRDROP ACTIVITY" :
+    r.score > 30 ? "🟠 SUSPICIOUS DISTRIBUTION" :
+    "🟢 ORGANIC STRUCTURE";
+
+  el.innerHTML=`
+    <b>🟣 AIRDROP / KOL SIGNAL</b>
+    <div class="row"><span>Status</span><span>${level}</span></div>
+    <div class="row"><span>Score</span><span>${r.score}/100</span></div>
+    <div class="small">${r.signals.join("<br>") || "No signals"}</div>
+  `;
+}
+
+</script>
+
+</body>
+</html>
