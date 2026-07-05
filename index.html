@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartoon Story Builder</title>
+    <style>
+        body { font-family: 'Comic Sans MS', cursive, sans-serif; background: #fffde7; color: #333; padding: 15px; }
+        .ep-card { background: #e0f7fa; border: 2px solid #00acc1; padding: 10px; margin: 10px 0; border-radius: 10px; }
+        button { background: #4caf50; color: white; padding: 12px; border: none; border-radius: 20px; width: 100%; font-weight: bold; margin-top: 5px; }
+        h4 { color: #00acc1; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h2>🎬 Cartoon Episode Planner</h2>
+    
+    <input type="text" id="name" placeholder="Add Character Name..." style="width:90%; padding:10px;">
+    <button onclick="addChar()">+ Add Character</button>
+    
+    <h3>New Episode Idea</h3>
+    <textarea id="prompt" placeholder="The adventure theme..." style="width:90%; height:60px;"></textarea>
+    <button onclick="generateCartoon()">Generate Structured Script</button>
+
+    <h3>Saved Episodes</h3>
+    <div id="epList"></div>
+
+    <script>
+        let chars = JSON.parse(localStorage.getItem('cartoon_chars') || '[]');
+        let eps = JSON.parse(localStorage.getItem('cartoon_eps') || '[]');
+
+        function addChar() {
+            chars.push({ name: document.getElementById('name').value });
+            localStorage.setItem('cartoon_chars', JSON.stringify(chars));
+            alert("Character saved!");
+        }
+
+        function generateCartoon() {
+            if(chars.length < 2) { alert("Need at least 2 characters!"); return; }
+            const h = chars[Math.floor(Math.random()*chars.length)];
+            const s = chars[Math.floor(Math.random()*chars.length)];
+            const plot = document.getElementById('prompt').value;
+            
+            const script = `<h4>${plot}</h4>` +
+                `<strong>INTRO:</strong> ${h.name} finds a problem! [Ding!]<br>` +
+                `<strong>ACTION:</strong> ${s.name} helps out! [Whoosh!]<br>` +
+                `<strong>OUTRO:</strong> They celebrate together! [Boing!]`;
+            
+            eps.push(script);
+            localStorage.setItem('cartoon_eps', JSON.stringify(eps));
+            renderEps();
+        }
+
+        function renderEps() {
+            document.getElementById('epList').innerHTML = eps.map(e => 
+                `<div class="ep-card">${e}</div>`).join('');
+        }
+        renderEps();
+    </script>
+</body>
+</html>
