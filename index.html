@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BUDE Storyboard Manager</title>
+<style>
+  :root {
+    --bg: #000000;
+    --surface: #121212;
+    --surface2: #1e1e1e;
+    --surface3: #2a2a2a;
+    --accent: #1da1f2;
+    --accent2: #0d8bd9;
+    --text: #ffffff;
+    --text2: #8899a6;
+    --text3: #5b7083;
+    --border: #2f3336;
+    --danger: #e0245e;
+    --success: #17bf63;
+    --warning: #ffad1f;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { scroll-behavior:smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: 80px;
+  }
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .header .badge {
+    background: var(--accent); color: #fff; font-size: 11px; font-weight: 700;
+    padding: 3px 8px; border-radius: 12px;
+  }
+  .tabs {
+    display: flex; gap: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 1; min-width: 80px; text-align: center;
+    padding: 14px 8px; font-size: 13px; font-weight: 600;
+    color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .section { display: none; padding: 12px 16px; }
+  .section.active { display: block; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 16px;
+    margin-bottom: 12px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .card:active { transform: scale(0.98); }
+  .form-group { margin-bottom: 14px; }
+  .form-group label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .form-group input, .form-group textarea, .form-group select {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px; color: var(--text); font-size: 15px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: var(--accent);
+  }
+  .form-group textarea { min-height: 80px; resize: vertical; }
+  .form-group select { appearance: none; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 12px 20px; border-radius: 12px; border: none;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s; width: 100%;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:active { background: var(--accent2); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-outline {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text2);
+  }
+  .btn-sm { padding: 8px 14px; font-size: 12px; border-radius: 10px; width: auto; }
+  .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+  .btn-row .btn { flex: 1; }
+  .char-card {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--surface2); border-radius: 14px;
+    padding: 14px; margin-bottom: 10px;
+    border: 1px solid var(--border);
+  }
+  .char-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 700; flex-shrink: 0;
+  }
+  .char-info { flex: 1; min-width: 0; }
+  .char-name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+  .char-role {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 8px; margin-bottom: 4px;
+  }
+  .char-role.lead { background: rgba(29,161,242,0.15); color: var(--accent); }
+  .char-role.support { background: rgba(23,191,99,0.15); color: var(--success); }
+  .char-role.bg { background: rgba(136,153,166,0.15); color: var(--text2); }
+  .char-desc { font-size: 13px; color: var(--text2); line-height: 1.4; }
+  .char-skills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .skill-tag {
+    font-size: 11px; background: var(--surface3); color: var(--text2);
+    padding: 3px 8px; border-radius: 8px;
+  }
+  .char-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .ep-card {
+    background: var(--surface2); border-radius: 14px;
+    padding: 14px; margin-bottom: 10px;
+    border: 1px solid var(--border);
+  }
+  .ep-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .ep-num {
+    background: var(--accent); color: #fff; font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 10px;
+  }
+  .ep-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .ep-lead { font-size: 13px; color: var(--accent); margin-bottom: 6px; }
+  .ep-synopsis { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 10px; }
+  .ep-scenes { margin-top: 10px; }
+  .scene-item {
+    background: var(--surface3); border-radius: 10px;
+    padding: 10px 12px; margin-bottom: 6px;
+    font-size: 13px; color: var(--text);
+  }
+  .scene-item .scene-loc { color: var(--text3); font-size: 11px; margin-bottom: 2px; }
+  .batch-area {
+    border: 2px dashed var(--border); border-radius: 16px;
+    padding: 30px 20px; text-align: center;
+    background: var(--surface2);
+    transition: border-color 0.2s;
+  }
+  .batch-area.dragover { border-color: var(--accent); background: rgba(29,161,242,0.05); }
+  .batch-area .icon { font-size: 36px; margin-bottom: 10px; }
+  .batch-area p { color: var(--text2); font-size: 14px; }
+  .batch-area .hint { font-size: 12px; color: var(--text3); margin-top: 6px; }
+  .file-input { display: none; }
+  .toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 12px 20px; border-radius: 12px;
+    font-size: 14px; font-weight: 600; z-index: 1000;
+    opacity: 0; transition: all 0.3s; pointer-events: none;
+    max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.9); backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-around; padding: 8px 0 20px;
+    z-index: 100;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 3px; color: var(--text3); font-size: 10px; font-weight: 600;
+    cursor: pointer; padding: 4px 12px; border-radius: 10px;
+    transition: color 0.2s;
+  }
+  .nav-item.active { color: var(--accent); }
+  .nav-item .nav-icon { font-size: 20px; }
+  .stats-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 8px; text-align: center;
+  }
+  .stat-num { font-size: 22px; font-weight: 800; color: var(--accent); }
+  .stat-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .search-bar {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 10px 14px; color: var(--text); font-size: 14px;
+    margin-bottom: 12px; outline: none;
+  }
+  .search-bar:focus { border-color: var(--accent); }
+  .empty {
+    text-align: center; padding: 40px 20px; color: var(--text3);
+  }
+  .empty .icon { font-size: 40px; margin-bottom: 10px; }
+  .empty p { font-size: 14px; }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200; padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; width: 100%; max-width: 400px;
+    max-height: 80vh; overflow: hidden;
+  }
+  .modal-header {
+    padding: 16px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .modal-header h3 { font-size: 16px; }
+  .modal-close { background: none; border: none; color: var(--text2); font-size: 20px; cursor: pointer; }
+  .modal-body { padding: 16px; overflow-y: auto; max-height: 50vh; }
+  .modal-body pre {
+    background: var(--surface2); border-radius: 10px;
+    padding: 12px; font-size: 11px; color: var(--text2);
+    overflow-x: auto; white-space: pre-wrap; word-break: break-all;
+    max-height: 40vh; overflow-y: auto;
+  }
+  .modal-footer { padding: 12px 16px; border-top: 1px solid var(--border); }
+  .collapsible-header {
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; padding: 4px 0;
+  }
+  .collapsible-header h3 { font-size: 15px; }
+  .collapsible-header .chevron { transition: transform 0.2s; color: var(--text3); }
+  .collapsible-header.open .chevron { transform: rotate(180deg); }
+  .collapsible-body { display: none; padding-top: 10px; }
+  .collapsible-body.open { display: block; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in { animation: slideIn 0.3s ease; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📖 BUDE Storyboard</h1>
+  <span class="badge" id="totalCount">0</span>
+</div>
+
+<div class="tabs" id="topTabs">
+  <div class="tab active" data-tab="characters">Characters</div>
+  <div class="tab" data-tab="episodes">Episodes</div>
+  <div class="tab" data-tab="batch">Batch</div>
+  <div class="tab" data-tab="export">Export</div>
+</div>
+
+<div class="section active" id="characters">
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-num" id="statTotal">0</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="statLeads">0</div>
+      <div class="stat-label">Leads</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="statBG">0</div>
+      <div class="stat-label">Background</div>
+    </div>
+  </div>
+
+  <input type="text" class="search-bar" id="charSearch" placeholder="🔍 Search characters...">
+
+  <div class="card">
+    <div class="collapsible-header" onclick="toggleCollapse(this)">
+      <h3>➕ Add Character</h3>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="collapsible-body" id="charFormBody">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="charName" placeholder="Character name">
+      </div>
+      <div class="form-group">
+        <label>Role Type</label>
+        <select id="charRole">
+          <option value="lead">Lead Character</option>
+          <option value="support">Supporting</option>
+          <option value="bg">Background (exists but doesn't play a part)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="charDesc" placeholder="Who they are, personality, appearance..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Skills / Abilities (comma separated)</label>
+        <input type="text" id="charSkills" placeholder="e.g. Hacking, Combat, Stealth">
+      </div>
+      <button class="btn btn-primary" onclick="addCharacter()">💾 Save Character</button>
+    </div>
+  </div>
+
+  <div id="charList"></div>
+</div>
+
+<div class="section" id="episodes">
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-num" id="statEpisodes">0</div>
+      <div class="stat-label">Episodes</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="statScenes">0</div>
+      <div class="stat-label">Scenes</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="collapsible-header" onclick="toggleCollapse(this)">
+      <h3>➕ Add Episode</h3>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="collapsible-body" id="epFormBody">
+      <div class="form-group">
+        <label>Episode Number</label>
+        <input type="number" id="epNum" placeholder="1" min="1">
+      </div>
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="epTitle" placeholder="Episode title">
+      </div>
+      <div class="form-group">
+        <label>Lead Character</label>
+        <select id="epLead">
+          <option value="">Select lead character...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Synopsis</label>
+        <textarea id="epSynopsis" placeholder="What happens in this episode..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Scenes (one per line: Location | Description)</label>
+        <textarea id="epScenes" placeholder="Coffee Shop | Team meets up\nWarehouse | The heist begins" rows="4"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="addEpisode()">💾 Save Episode</button>
+    </div>
+  </div>
+
+  <div id="epList"></div>
+</div>
+
+<div class="section" id="batch">
+  <div class="card">
+    <h3 style="font-size:15px; margin-bottom:10px;">📤 Batch Character Upload</h3>
+    <p style="font-size:13px; color:var(--text2); margin-bottom:14px;">
+      Paste multiple characters at once. Format: <code style="background:var(--surface3); padding:2px 6px; border-radius:4px;">Name | Role | Description | Skills</code>
+    </p>
+    <div class="form-group">
+      <label>Paste characters here (one per line)</label>
+      <textarea id="batchInput" rows="8" placeholder="Mau5 | lead | The mastermind behind the crew. Quiet but deadly. | Hacking, Strategy\nGhost | bg | A bartender who overhears everything. | None\nRaven | support | Muscle with a heart of gold. | Combat, Driving"></textarea>
+    </div>
+    <button class="btn btn-success" onclick="processBatch()">🚀 Process Batch</button>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:15px; margin-bottom:10px;">📁 Or Upload JSON</h3>
+    <div class="batch-area" id="dropZone" onclick="document.getElementById('jsonFile').click()">
+      <div class="icon">📂</div>
+      <p>Tap to select JSON file</p>
+      <p class="hint">Supports .json character arrays</p>
+    </div>
+    <input type="file" id="jsonFile" class="file-input" accept=".json" onchange="handleJSONUpload(event)">
+  </div>
+</div>
+
+<div class="section" id="export">
+  <div class="card">
+    <h3 style="font-size:15px; margin-bottom:10px;">📋 Copy-Paste Export</h3>
+    <p style="font-size:13px; color:var(--text2); margin-bottom:14px;">
+      Tap a button below to copy your data to clipboard. Paste it anywhere — notes, messages, GitHub.
+    </p>
+    <button class="btn btn-primary" onclick="copyJSON()" style="margin-bottom:8px;">📄 Copy as JSON</button>
+    <button class="btn btn-outline" onclick="copyMarkdown()" style="margin-bottom:8px;">📝 Copy as Markdown</button>
+    <button class="btn btn-outline" onclick="copyPlainText()">📃 Copy as Plain Text</button>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:15px; margin-bottom:10px;">💾 Local Storage</h3>
+    <p style="font-size:13px; color:var(--text2); margin-bottom:14px;">
+      All data is saved automatically in your browser. You can also download a backup file.
+    </p>
+    <button class="btn btn-success" onclick="downloadBackup()">💾 Download Backup (.json)</button>
+    <button class="btn btn-danger" onclick="clearAllData()" style="margin-top:8px;">🗑️ Clear All Data</button>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:15px; margin-bottom:10px;">📤 Import Backup</h3>
+    <div class="batch-area" onclick="document.getElementById('importFile').click()">
+      <div class="icon">📥</div>
+      <p>Tap to import backup JSON</p>
+    </div>
+    <input type="file" id="importFile" class="file-input" accept=".json" onchange="importBackup(event)">
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="copyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📋 Copy This</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <pre id="modalContent"></pre>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="doCopy()">📋 Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <div class="nav-item active" data-tab="characters">
+    <span class="nav-icon">👤</span>
+    <span>Chars</span>
+  </div>
+  <div class="nav-item" data-tab="episodes">
+    <span class="nav-icon">🎬</span>
+    <span>Episodes</span>
+  </div>
+  <div class="nav-item" data-tab="batch">
+    <span class="nav-icon">📦</span>
+    <span>Batch</span>
+  </div>
+  <div class="nav-item" data-tab="export">
+    <span class="nav-icon">📤</span>
+    <span>Export</span>
+  </div>
+</div>
+
+<script>
+let data = {
+  characters: [],
+  episodes: [],
+  nextCharId: 1,
+  nextEpId: 1
+};
+
+const demoChars = [
+  { id: 1, name: "Mau5", role: "lead", desc: "The mastermind behind the crew. Quiet, calculating, always three moves ahead.", skills: ["Hacking", "Strategy", "Leadership"], created: Date.now() },
+  { id: 2, name: "Ghost", role: "bg", desc: "A bartender at the crew's local haunt. Sees everything, says nothing. Exists in the background.", skills: ["Observation"], created: Date.now() },
+  { id: 3, name: "Raven", role: "support", desc: "Muscle with a heart of gold. Loyal to a fault. Handles the heavy lifting.", skills: ["Combat", "Driving", "Intimidation"], created: Date.now() },
+  { id: 4, name: "Cipher", role: "lead", desc: "Tech wizard and code breaker. Can breach any system given enough time.", skills: ["Coding", "Cryptography", "Electronics"], created: Date.now() },
+  { id: 5, name: "Shadow", role: "bg", desc: "A street vendor who sells info on the side. Barely appears but the world feels emptier without them.", skills: ["Street Smarts"], created: Date.now() }
+];
+
+const demoEps = [
+  { id: 1, num: 1, title: "The Setup", leadId: 1, leadName: "Mau5", synopsis: "Mau5 assembles the crew for a seemingly impossible heist. Ghost watches from the bar.", scenes: [{loc:"The Bar", desc:"Mau5 meets Raven and Cipher"}, {loc:"Safehouse", desc:"The plan is laid out"}], created: Date.now() },
+  { id: 2, num: 2, title: "Digital Fortress", leadId: 4, leadName: "Cipher", synopsis: "Cipher takes the lead breaching the target's cybersecurity. Every second counts.", scenes: [{loc:"Server Room", desc:"Cipher hacks the mainframe"}, {loc:"Van", desc:"Raven keeps watch"}], created: Date.now() }
+];
+
+function init() {
+  const saved = localStorage.getItem('bude_storyboard');
+  if (saved) {
+    try { data = JSON.parse(saved); } catch(e) { loadDemo(); }
+  } else { loadDemo(); }
+  renderAll();
+  updateLeadSelect();
+}
+
+function loadDemo() {
+  data.characters = [...demoChars];
+  data.episodes = [...demoEps];
+  data.nextCharId = 6;
+  data.nextEpId = 3;
+  saveData();
+}
+
+function saveData() {
+  localStorage.setItem('bude_storyboard', JSON.stringify(data));
+  updateStats();
+}
+
+document.querySelectorAll('.tab, .nav-item').forEach(el => {
+  el.addEventListener('click', () => {
+    const tab = el.dataset.tab;
+    document.querySelectorAll('.tab, .nav-item').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll(`.tab[data-tab="${tab}"], .nav-item[data-tab="${tab}"]`).forEach(t => t.classList.add('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(tab).classList.add('active');
+    if (tab === 'episodes') updateLeadSelect();
+  });
+});
+
+function toggleCollapse(header) {
+  header.classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+}
+
+function addCharacter() {
+  const name = document.getElementById('charName').value.trim();
+  const role = document.getElementById('charRole').value;
+  const desc = document.getElementById('charDesc').value.trim();
+  const skillsStr = document.getElementById('charSkills').value.trim();
+  if (!name) { showToast('❌ Name is required'); return; }
+  const skills = skillsStr ? skillsStr.split(',').map(s => s.trim()).filter(s => s) : [];
+  data.characters.push({ id: data.nextCharId++, name, role, desc, skills, created: Date.now() });
+  saveData();
+  renderCharacters();
+  updateLeadSelect();
+  document.getElementById('charName').value = '';
+  document.getElementById('charDesc').value = '';
+  document.getElementById('charSkills').value = '';
+  showToast(`✅ ${name} added!`);
+}
+
+function deleteCharacter(id) {
+  if (!confirm('Delete this character?')) return;
+  data.characters = data.characters.filter(c => c.id !== id);
+  data.episodes.forEach(ep => { if (ep.leadId === id) { ep.leadId = null; ep.leadName = 'Unknown'; } });
+  saveData();
+  renderCharacters();
+  renderEpisodes();
+  updateLeadSelect();
+  showToast('🗑️ Character deleted');
+}
+
+function renderCharacters() {
+  const search = document.getElementById('charSearch').value.toLowerCase();
+  const list = document.getElementById('charList');
+  const filtered = data.characters.filter(c =>
+    c.name.toLowerCase().includes(search) ||
+    c.desc.toLowerCase().includes(search) ||
+    c.skills.some(s => s.toLowerCase().includes(search))
+  );
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="icon">👤</div><p>No characters yet. Add some!</p></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(c => {
+    const roleClass = c.role;
+    const roleLabel = c.role === 'lead' ? 'Lead' : c.role === 'support' ? 'Supporting' : 'Background';
+    const initial = c.name.charAt(0).toUpperCase();
+    const skillsHtml = c.skills.length ? `<div class="char-skills">${c.skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}</div>` : '';
+    return `
+      <div class="char-card animate-in">
+        <div class="char-avatar">${initial}</div>
+        <div class="char-info">
+          <div class="char-name">${c.name}</div>
+          <span class="char-role ${roleClass}">${roleLabel}</span>
+          <div class="char-desc">${c.desc || 'No description'}</div>
+          ${skillsHtml}
+          <div class="char-actions">
+            <button class="btn btn-sm btn-outline" onclick="copyCharJSON(${c.id})">📄 JSON</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteCharacter(${c.id})">🗑️</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+document.getElementById('charSearch').addEventListener('input', renderCharacters);
+
+function updateLeadSelect() {
+  const select = document.getElementById('epLead');
+  const leads = data.characters.filter(c => c.role === 'lead');
+  select.innerHTML = '<option value="">Select lead character...</option>' +
+    leads.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+function addEpisode() {
+  const num = parseInt(document.getElementById('epNum').value) || data.episodes.length + 1;
+  const title = document.getElementById('epTitle').value.trim();
+  const leadId = parseInt(document.getElementById('epLead').value) || null;
+  const synopsis = document.getElementById('epSynopsis').value.trim();
+  const scenesStr = document.getElementById('epScenes').value.trim();
+  if (!title) { showToast('❌ Title is required'); return; }
+  const lead = data.characters.find(c => c.id === leadId);
+  const scenes = scenesStr.split('\n').filter(s => s.trim()).map(s => {
+    const parts = s.split('|');
+    return { loc: (parts[0] || 'Unknown').trim(), desc: (parts[1] || parts[0]).trim() };
+  });
+  data.episodes.push({ id: data.nextEpId++, num, title, leadId, leadName: lead ? lead.name : 'Unknown', synopsis, scenes, created: Date.now() });
+  data.episodes.sort((a, b) => a.num - b.num);
+  saveData();
+  renderEpisodes();
+  document.getElementById('epNum').value = '';
+  document.getElementById('epTitle').value = '';
+  document.getElementById('epSynopsis').value = '';
+  document.getElementById('epScenes').value = '';
+  showToast(`✅ Episode ${num} saved!`);
+}
+
+function deleteEpisode(id) {
+  if (!confirm('Delete this episode?')) return;
+  data.episodes = data.episodes.filter(e => e.id !== id);
+  saveData();
+  renderEpisodes();
+  showToast('🗑️ Episode deleted');
+}
+
+function renderEpisodes() {
+  const list = document.getElementById('epList');
+  if (data.episodes.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="icon">🎬</div><p>No episodes yet. Create one!</p></div>`;
+    return;
+  }
+  list.innerHTML = data.episodes.map(ep => {
+    const scenesHtml = ep.scenes.length ? `
+      <div class="ep-scenes">
+        <p style="font-size:12px; color:var(--text3); margin-bottom:6px;">🎬 Scenes:</p>
+        ${ep.scenes.map(s => `<div class="scene-item"><div class="scene-loc">📍 ${s.loc}</div>${s.desc}</div>`).join('')}
+      </div>` : '';
+    return `
+      <div class="ep-card animate-in">
+        <div class="ep-header">
+          <div>
+            <span class="ep-num">EP ${ep.num}</span>
+            <div class="ep-title" style="margin-top:6px;">${ep.title}</div>
+            <div class="ep-lead">⭐ Lead: ${ep.leadName}</div>
+          </div>
+        </div>
+        <div class="ep-synopsis">${ep.synopsis || 'No synopsis'}</div>
+        ${scenesHtml}
+        <div class="char-actions" style="margin-top:10px;">
+          <button class="btn btn-sm btn-outline" onclick="copyEpJSON(${ep.id})">📄 JSON</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteEpisode(${ep.id})">🗑️</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function processBatch() {
+  const input = document.getElementById('batchInput').value.trim();
+  if (!input) { showToast('❌ Paste some characters first'); return; }
+  const lines = input.split('\n').filter(l => l.trim());
+  let added = 0;
+  lines.forEach(line => {
+    const parts = line.split('|').map(p => p.trim());
+    if (parts.length >= 2 && parts[0]) {
+      const name = parts[0];
+      const role = ['lead','support','bg'].includes(parts[1].toLowerCase()) ? parts[1].toLowerCase() : 'bg';
+      const desc = parts[2] || '';
+      const skills = parts[3] ? parts[3].split(',').map(s => s.trim()).filter(s => s) : [];
+      data.characters.push({ id: data.nextCharId++, name, role, desc, skills, created: Date.now() });
+      added++;
+    }
+  });
+  saveData();
+  renderCharacters();
+  updateLeadSelect();
+  document.getElementById('batchInput').value = '';
+  showToast(`✅ ${added} characters added!`);
+}
+
+function handleJSONUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (Array.isArray(imported)) {
+        imported.forEach(c => {
+          if (c.name) {
+            data.characters.push({
+              id: data.nextCharId++,
+              name: c.name,
+              role: ['lead','support','bg'].includes(c.role) ? c.role : 'bg',
+              desc: c.desc || c.description || '',
+              skills: Array.isArray(c.skills) ? c.skills : (c.skills ? c.skills.split(',').map(s=>s.trim()) : []),
+              created: Date.now()
+            });
+          }
+        });
+        saveData();
+        renderCharacters();
+        updateLeadSelect();
+        showToast(`✅ ${imported.length} characters imported!`);
+      } else if (imported.characters) {
+        data = imported;
+        saveData();
+        renderAll();
+        showToast('✅ Full backup restored!');
+      }
+    } catch(err) { showToast('❌ Invalid JSON file'); }
+  };
+  reader.readAsText(file);
+}
+
+function copyJSON() { showModal(JSON.stringify(data, null, 2)); }
+
+function copyMarkdown() {
+  let md = `# BUDE Storyboard\n\n`;
+  md += `## Characters (${data.characters.length})\n\n`;
+  data.characters.forEach(c => {
+    const role = c.role === 'lead' ? '⭐ Lead' : c.role === 'support' ? '🤝 Support' : '👤 Background';
+    md += `### ${c.name} — ${role}\n`;
+    md += `${c.desc || 'No description'}\n\n`;
+    if (c.skills.length) md += `**Skills:** ${c.skills.join(', ')}\n\n`;
+  });
+  md += `---\n\n## Episodes (${data.episodes.length})\n\n`;
+  data.episodes.forEach(ep => {
+    md += `### EP ${ep.num}: ${ep.title}\n`;
+    md += `**Lead:** ${ep.leadName}\n\n`;
+    md += `${ep.synopsis || 'No synopsis'}\n\n`;
+    if (ep.scenes.length) {
+      md += `**Scenes:**\n`;
+      ep.scenes.forEach(s => md += `- **${s.loc}:** ${s.desc}\n`);
+      md += `\n`;
+    }
+  });
+  showModal(md);
+}
+
+function copyPlainText() {
+  let txt = `BUDE STORYBOARD\n================\n\n`;
+  txt += `CHARACTERS (${data.characters.length})\n`;
+  txt += `--------------------\n\n`;
+  data.characters.forEach(c => {
+    const role = c.role === 'lead' ? 'LEAD' : c.role === 'support' ? 'SUPPORT' : 'BACKGROUND';
+    txt += `[${role}] ${c.name}\n`;
+    txt += `${c.desc || 'No description'}\n`;
+    if (c.skills.length) txt += `Skills: ${c.skills.join(', ')}\n`;
+    txt += `\n`;
+  });
+  txt += `EPISODES (${data.episodes.length})\n`;
+  txt += `--------------------\n\n`;
+  data.episodes.forEach(ep => {
+    txt += `EP ${ep.num}: ${ep.title}\n`;
+    txt += `Lead: ${ep.leadName}\n`;
+    txt += `${ep.synopsis || 'No synopsis'}\n`;
+    if (ep.scenes.length) { ep.scenes.forEach(s => txt += `  • ${s.loc}: ${s.desc}\n`); }
+    txt += `\n`;
+  });
+  showModal(txt);
+}
+
+function copyCharJSON(id) {
+  const c = data.characters.find(x => x.id === id);
+  if (c) showModal(JSON.stringify(c, null, 2));
+}
+
+function copyEpJSON(id) {
+  const ep = data.episodes.find(x => x.id === id);
+  if (ep) showModal(JSON.stringify(ep, null, 2));
+}
+
+let modalContent = '';
+function showModal(content) {
+  modalContent = content;
+  document.getElementById('modalContent').textContent = content;
+  document.getElementById('copyModal').classList.add('show');
+}
+function closeModal() { document.getElementById('copyModal').classList.remove('show'); }
+function doCopy() {
+  navigator.clipboard.writeText(modalContent).then(() => {
+    showToast('✅ Copied to clipboard!');
+    closeModal();
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = modalContent;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('✅ Copied to clipboard!');
+    closeModal();
+  });
+}
+
+function downloadBackup() {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `bude_storyboard_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('💾 Backup downloaded!');
+}
+
+function importBackup(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (imported.characters && imported.episodes) {
+        data = imported;
+        saveData();
+        renderAll();
+        showToast('✅ Backup restored!');
+      } else { showToast('❌ Invalid backup format'); }
+    } catch(err) { showToast('❌ Invalid JSON'); }
+  };
+  reader.readAsText(file);
+}
+
+function clearAllData() {
+  if (!confirm('⚠️ Delete ALL data? This cannot be undone!')) return;
+  data = { characters: [], episodes: [], nextCharId: 1, nextEpId: 1 };
+  saveData();
+  renderAll();
+  showToast('🗑️ All data cleared');
+}
+
+function updateStats() {
+  const total = data.characters.length;
+  const leads = data.characters.filter(c => c.role === 'lead').length;
+  const bg = data.characters.filter(c => c.role === 'bg').length;
+  const eps = data.episodes.length;
+  const scenes = data.episodes.reduce((sum, ep) => sum + ep.scenes.length, 0);
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statLeads').textContent = leads;
+  document.getElementById('statBG').textContent = bg;
+  document.getElementById('statEpisodes').textContent = eps;
+  document.getElementById('statScenes').textContent = scenes;
+  document.getElementById('totalCount').textContent = total + eps;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function renderAll() {
+  renderCharacters();
+  renderEpisodes();
+  updateStats();
+}
+
+init();
+</script>
+</body>
+</html>
