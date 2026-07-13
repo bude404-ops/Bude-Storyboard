@@ -1,0 +1,2 @@
+class WorldMemory:
+    pass
