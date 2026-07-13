@@ -1,0 +1,1 @@
+function createContent(type,input,style){return {type:type,style:style,idea:input,status:'Creative engine active'}}
