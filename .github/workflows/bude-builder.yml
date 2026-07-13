@@ -16,7 +16,7 @@ jobs:
 
   build-bude:
 
-    name: Build BudE StoryBoard AI
+    name: Build BudE StoryBoard AI Genesis
 
     runs-on: ubuntu-latest
 
@@ -33,9 +33,9 @@ jobs:
           python-version: "3.12"
 
 
-      - name: Verify Files
+      - name: Verify Genesis Files
         run: |
-          echo "Checking BudE Genesis files..."
+          echo "Checking required files..."
 
           test -f seed.py
           test -f blueprint.json
@@ -47,7 +47,7 @@ jobs:
         run: |
           python -m json.tool blueprint.json > /dev/null
 
-          echo "Blueprint valid"
+          echo "Blueprint validation complete"
 
 
       - name: Run BudE Seed Builder
@@ -55,7 +55,13 @@ jobs:
           python seed.py
 
 
-      - name: Verify Generated System
+      - name: Display Generated Files
+        run: |
+          echo "Generated BudE Structure:"
+          find . -maxdepth 3 -type f | sort
+
+
+      - name: Verify BudE System
         run: |
           echo "Checking generated folders..."
 
@@ -69,14 +75,35 @@ jobs:
           echo "BudE structure verified"
 
 
-      - name: Test Engine
+      - name: Test BudE Engine
         run: |
-          python bude-engine/engine.py || true
+          if [ -f bude-engine/engine.py ]; then
+            python bude-engine/engine.py
+          else
+            echo "Engine file not found"
+          fi
+
+
+      - name: Commit Generated Files
+        run: |
+
+          git config --global user.name "BudE Builder"
+
+          git config --global user.email "actions@github.com"
+
+
+          git add .
+
+
+          git commit -m "BudE Genesis Generated Build" || echo "No changes to commit"
+
+
+          git push || echo "Nothing to push"
 
 
       - name: Build Complete
         run: |
-          echo "================================"
+          echo "================================="
           echo " BudE StoryBoard AI Genesis v0.1 "
-          echo " Build Successful"
-          echo "================================"
+          echo " Build Complete"
+          echo "================================="
