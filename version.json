@@ -1,18 +1,22 @@
 {
-    "version": "1.5.0",
-    "name": "AI Core Connection",
+    "version": "1.5.1",
+    "name": "GitHub Pages Docs Migration",
     "files": {
-        "bude-engine/api.py": {
+        "docs/index.html": {
             "mode": "system",
-            "content": "from ai_core import AICore\nfrom output_manager import OutputManager\n\ncore=AICore()\nsaver=OutputManager()\n\n\ndef generate(prompt,category):\n\n    result=core.generate(prompt,category)\n\n    saver.save('latest_output',result)\n\n    return result\n"
+            "content": "<!DOCTYPE html>\n<html>\n<head>\n<title>BudE StoryBoard AI</title>\n<link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n<body>\n<h1>BudE StoryBoard AI</h1>\n<h2>Creative Command Center</h2>\n\n<div class=\"card\">\n<a href=\"generator.html\">Open Creative Generator</a>\n</div>\n\n<div class=\"card\">\nWorld Builder<br>\nCharacter Studio<br>\nStoryboard Director\n</div>\n\n</body>\n</html>"
         },
-        "dashboard/generator.js": {
+        "docs/generator.html": {
             "mode": "system",
-            "content": "async function generate(){\n\nlet prompt=document.getElementById('prompt').value;\nlet type=document.getElementById('type').value;\n\nlet output={\n category:type,\n prompt:prompt,\n status:'Sent to BudE AI Core',\n result:'Generation pipeline active'\n};\n\nlocalStorage.setItem('bude_output',JSON.stringify(output));\n\ndocument.getElementById('output').textContent=JSON.stringify(output,null,2);\n\n}"
+            "content": "<!DOCTYPE html>\n<html>\n<head>\n<title>BudE Generator</title>\n<link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n<body>\n<h1>BudE Creative Generator</h1>\n\n<textarea id=\"prompt\" placeholder=\"Describe your idea...\"></textarea>\n\n<select id=\"type\">\n<option value=\"story\">Story</option>\n<option value=\"character\">Character</option>\n<option value=\"world\">World</option>\n</select>\n\n<button onclick=\"generate()\">Generate</button>\n\n<pre id=\"output\">Waiting...</pre>\n\n<script src=\"generator.js\"></script>\n</body>\n</html>"
         },
-        "projects/generated/README.md": {
-            "mode": "protected",
-            "content": "# BudE Generated Content\n\nAI generated stories, characters, and worlds are stored here."
+        "docs/generator.js": {
+            "mode": "system",
+            "content": "function generate(){\nlet prompt=document.getElementById('prompt').value;\nlet type=document.getElementById('type').value;\n\nlet output={\n type:type,\n prompt:prompt,\n status:'BudE generation request received'\n};\n\ndocument.getElementById('output').textContent=JSON.stringify(output,null,2);\n}"
+        },
+        "docs/styles.css": {
+            "mode": "system",
+            "content": "body{background:#0b1220;color:white;font-family:Arial;padding:25px}.card{background:#18253a;padding:20px;margin:15px;border-radius:12px}textarea{width:90%;height:120px}"
         }
     }
 }
