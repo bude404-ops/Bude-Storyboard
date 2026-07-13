@@ -1,0 +1,20 @@
+{
+  "world_types": [
+    "Fantasy",
+    "Sci-Fi",
+    "Post-Apocalyptic",
+    "Cyberpunk",
+    "Medieval",
+    "Space Opera",
+    "Horror",
+    "Historical"
+  ],
+  "systems": [
+    "Kingdom",
+    "Empire",
+    "Federation",
+    "Corporation",
+    "Tribal",
+    "AI Civilization"
+  ]
+}
