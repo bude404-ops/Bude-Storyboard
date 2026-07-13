@@ -1,18 +1,18 @@
 {
-    "version": "1.0.0",
-    "name": "Production Pipeline Core",
+    "version": "1.1.0",
+    "name": "AI Director Core",
     "files": {
-        "bude-engine/production_pipeline.py": {
+        "modules/ai_director/director.py": {
             "mode": "system",
-            "content": "import json\nimport os\n\nclass ProductionPipeline:\n\n    def create_production(self,name):\n\n        production={\n            'name':name,\n            'world':'',\n            'characters':[],\n            'story':'',\n            'storyboard':'',\n            'art_style':'',\n            'status':'planning'\n        }\n\n        os.makedirs('projects/productions',exist_ok=True)\n\n        path=f'projects/productions/{name}.json'\n\n        with open(path,'w') as file:\n            json.dump(production,file,indent=4)\n\n        return path\n\n\n    def update_stage(self,production,stage,value):\n        production[stage]=value\n        return production\n"
+            "content": "class AIDirector:\n\n    def review_story(self,story):\n        return {\n            'score':0,\n            'pacing':'Review needed',\n            'characters':'Review needed',\n            'emotion':'Review needed',\n            'suggestions':[]\n        }\n\n\n    def suggest_improvements(self,production):\n        suggestions=[]\n\n        if not production.get('characters'):\n            suggestions.append('Add character development')\n\n        if not production.get('story'):\n            suggestions.append('Develop story structure')\n\n        return suggestions\n\n\n    def camera_notes(self,scene):\n        return {\n            'camera':'Suggested cinematic angle',\n            'lighting':'Suggested lighting style'\n        }\n"
         },
-        "modules/production/project_pipeline.json": {
+        "modules/ai_director/director_prompts.json": {
             "mode": "system",
-            "content": "{\n  \"stages\": [\n    \"Concept\",\n    \"World Building\",\n    \"Character Creation\",\n    \"Story Writing\",\n    \"Storyboard\",\n    \"Art Development\",\n    \"Animation Planning\",\n    \"Final Production\"\n  ]\n}"
+            "content": "{\n  \"review_types\": [\n    \"Story Quality\",\n    \"Character Development\",\n    \"Pacing\",\n    \"Emotion\",\n    \"Visual Direction\",\n    \"Audience Impact\"\n  ],\n  \"roles\": [\n    \"Film Director\",\n    \"Anime Director\",\n    \"Comic Editor\",\n    \"Game Narrative Director\"\n  ]\n}"
         },
-        "dashboard/production.html": {
+        "dashboard/ai_director.html": {
             "mode": "system",
-            "content": "<h1>BudE Production Pipeline</h1>\n<p>Transform ideas into complete creative productions.</p>\n<div>Concept \u2192 World \u2192 Characters \u2192 Story \u2192 Storyboard \u2192 Art \u2192 Production</div>\n<button>Create Production</button>"
+            "content": "<h1>AI Director</h1>\n<p>BudE reviews and improves creative projects.</p>\n<button>Analyze Project</button>"
         }
     }
 }
