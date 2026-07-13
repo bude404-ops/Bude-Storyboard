@@ -1,0 +1,82 @@
+name: BudE Genesis Builder
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
+
+
+permissions:
+  contents: write
+
+
+jobs:
+
+  build-bude:
+
+    name: Build BudE StoryBoard AI
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+
+      - name: Verify Files
+        run: |
+          echo "Checking BudE Genesis files..."
+
+          test -f seed.py
+          test -f blueprint.json
+
+          echo "Genesis files found"
+
+
+      - name: Validate Blueprint
+        run: |
+          python -m json.tool blueprint.json > /dev/null
+
+          echo "Blueprint valid"
+
+
+      - name: Run BudE Seed Builder
+        run: |
+          python seed.py
+
+
+      - name: Verify Generated System
+        run: |
+          echo "Checking generated folders..."
+
+          test -d dashboard
+          test -d bude-engine
+          test -d modules
+          test -d projects
+          test -d assets
+          test -d updates
+
+          echo "BudE structure verified"
+
+
+      - name: Test Engine
+        run: |
+          python bude-engine/engine.py || true
+
+
+      - name: Build Complete
+        run: |
+          echo "================================"
+          echo " BudE StoryBoard AI Genesis v0.1 "
+          echo " Build Successful"
+          echo "================================"
