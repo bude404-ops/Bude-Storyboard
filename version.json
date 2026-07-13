@@ -1,18 +1,18 @@
 {
-    "version": "2.2.0",
-    "name": "Project Memory System",
+    "version": "2.3.0",
+    "name": "Character Creator Engine",
     "files": {
-        "bude-engine/memory_manager.js": {
+        "bude-engine/character_creator.js": {
             "mode": "system",
-            "content": "class MemoryManager {\n\nconstructor(){\nthis.memory={\ncharacters:[],\nworlds:[],\nstories:[]\n};\n}\n\nadd(type,data){\nif(this.memory[type]){\nthis.memory[type].push(data);\n}\nthis.save();\n}\n\nget(type){\nreturn this.memory[type] || [];\n}\n\nsave(){\nlocalStorage.setItem('bude_memory',JSON.stringify(this.memory));\n}\n\nload(){\nlet data=localStorage.getItem('bude_memory');\nif(data){this.memory=JSON.parse(data);}\n}\n\n}\n\nwindow.BudEMemory=new MemoryManager();"
+            "content": "function createCharacter(idea,style){\n\nlet character={\nname:'Generated Character',\nconcept:idea,\nstyle:style,\nappearance:'Designed from concept: '+idea,\npersonality:['Determined','Adaptable'],\nbackground:'A character created inside BudE StoryBoard AI.',\nskills:['Primary Skill','Secondary Skill'],\nweaknesses:['Personal Conflict'],\ngoal:'Discover their purpose',\ngrowthArc:'Begins inexperienced and grows through challenges.',\nvisualProfile:{\nstyle:style,\nconsistencyId:'CHAR-'+Date.now()\n}\n};\n\nreturn character;\n}"
         },
-        "bude-engine/memory_config.json": {
+        "docs/character.html": {
             "mode": "system",
-            "content": "{\n \"memory_enabled\":true,\n \"character_consistency\":true,\n \"world_consistency\":true,\n \"project_history\":true\n}"
+            "content": "<!DOCTYPE html><html><head><title>Character Studio</title><meta name='viewport' content='width=device-width,initial-scale=1'><link rel='stylesheet' href='styles.css'></head><body><main class='container'><h1>\ud83d\udc64 Character Studio</h1><textarea id='idea' placeholder='Describe your character'></textarea><select id='style'><option>Anime</option><option>Fantasy</option><option>Sci-Fi</option><option>Comic</option></select><button class='button' onclick='create()'>Create Character</button><pre id='output'>Waiting...</pre><a class='button' href='index.html'>\u2b05 Back</a></main><script src='character_creator.js'></script><script src='character.js'></script></body></html>"
         },
-        "docs/memory.html": {
+        "docs/character.js": {
             "mode": "system",
-            "content": "<html><head><link rel='stylesheet' href='styles.css'></head><body><main class='container'><h1>\ud83e\udde0 BudE Memory</h1><div class='status'>Character Memory: Enabled</div><div class='status'>World Memory: Enabled</div><div class='status'>Project History: Enabled</div><a class='button' href='index.html'>\u2b05 Back</a></main></body></html>"
+            "content": "function create(){\nlet idea=document.getElementById('idea').value;\nlet style=document.getElementById('style').value;\nlet result=createCharacter(idea,style);\nlocalStorage.setItem('bude_character',JSON.stringify(result));\ndocument.getElementById('output').textContent=JSON.stringify(result,null,2);\n}"
         }
     }
 }
