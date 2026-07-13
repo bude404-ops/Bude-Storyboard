@@ -3,6 +3,9 @@ import json
 from datetime import datetime
 
 
+BLUEPRINT = "blueprint.json"
+
+
 def create_folder(path):
     os.makedirs(path, exist_ok=True)
 
@@ -20,25 +23,36 @@ def create_file(path, content):
             file.write(content)
 
 
+
 def build():
 
-    print("Starting BudE Genesis Builder")
+    print("================================")
+    print("BudE Genesis Builder")
+    print("================================")
 
-    with open("blueprint.json", "r", encoding="utf-8") as file:
+
+    with open(BLUEPRINT, "r", encoding="utf-8") as file:
         blueprint = json.load(file)
 
 
     for folder in blueprint["folders"]:
+
         create_folder(folder)
-        print("Created folder:", folder)
+
+        print("Folder:", folder)
+
 
 
     for filename, content in blueprint["files"].items():
+
         create_file(filename, content)
-        print("Created file:", filename)
+
+        print("File:", filename)
+
 
 
     create_folder("docs")
+
 
     with open(
         "docs/build_log.txt",
@@ -47,11 +61,12 @@ def build():
     ) as log:
 
         log.write(
-            f"Build completed {datetime.now()}\n"
+            f"Build completed: {datetime.now()}\n"
         )
 
 
-    print("BudE Genesis Complete")
+    print("BudE Genesis Build Complete")
+
 
 
 if __name__ == "__main__":
