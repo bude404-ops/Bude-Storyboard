@@ -1,22 +1,22 @@
 {
-    "version": "1.5.1",
-    "name": "GitHub Pages Docs Migration",
+    "version": "1.6.0",
+    "name": "AI Engine Adapter",
     "files": {
-        "docs/index.html": {
+        "bude-engine/ai_engine.py": {
             "mode": "system",
-            "content": "<!DOCTYPE html>\n<html>\n<head>\n<title>BudE StoryBoard AI</title>\n<link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n<body>\n<h1>BudE StoryBoard AI</h1>\n<h2>Creative Command Center</h2>\n\n<div class=\"card\">\n<a href=\"generator.html\">Open Creative Generator</a>\n</div>\n\n<div class=\"card\">\nWorld Builder<br>\nCharacter Studio<br>\nStoryboard Director\n</div>\n\n</body>\n</html>"
+            "content": "import json\nimport os\n\nCONFIG='bude-engine/ai_config.json'\n\nclass AIEngine:\n\n    def __init__(self):\n        self.config=self.load_config()\n\n\n    def load_config(self):\n        if os.path.exists(CONFIG):\n            with open(CONFIG,'r') as file:\n                return json.load(file)\n\n        return {\n            'provider':'local',\n            'model':'none'\n        }\n\n\n    def generate(self,prompt,category):\n\n        return {\n            'engine':self.config['provider'],\n            'model':self.config['model'],\n            'category':category,\n            'prompt':prompt,\n            'status':'Ready for model connection'\n        }\n"
         },
-        "docs/generator.html": {
+        "bude-engine/ai_config.json": {
             "mode": "system",
-            "content": "<!DOCTYPE html>\n<html>\n<head>\n<title>BudE Generator</title>\n<link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n<body>\n<h1>BudE Creative Generator</h1>\n\n<textarea id=\"prompt\" placeholder=\"Describe your idea...\"></textarea>\n\n<select id=\"type\">\n<option value=\"story\">Story</option>\n<option value=\"character\">Character</option>\n<option value=\"world\">World</option>\n</select>\n\n<button onclick=\"generate()\">Generate</button>\n\n<pre id=\"output\">Waiting...</pre>\n\n<script src=\"generator.js\"></script>\n</body>\n</html>"
+            "content": "{\n  \"provider\":\"local\",\n  \"model\":\"none\",\n  \"memory\":true\n}"
+        },
+        "bude-engine/request_router.py": {
+            "mode": "system",
+            "content": "from ai_engine import AIEngine\n\nengine=AIEngine()\n\n\ndef route_request(prompt,category):\n    return engine.generate(prompt,category)\n"
         },
         "docs/generator.js": {
             "mode": "system",
-            "content": "function generate(){\nlet prompt=document.getElementById('prompt').value;\nlet type=document.getElementById('type').value;\n\nlet output={\n type:type,\n prompt:prompt,\n status:'BudE generation request received'\n};\n\ndocument.getElementById('output').textContent=JSON.stringify(output,null,2);\n}"
-        },
-        "docs/styles.css": {
-            "mode": "system",
-            "content": "body{background:#0b1220;color:white;font-family:Arial;padding:25px}.card{background:#18253a;padding:20px;margin:15px;border-radius:12px}textarea{width:90%;height:120px}"
+            "content": "function generate(){\n\nlet prompt=document.getElementById('prompt').value;\nlet type=document.getElementById('type').value;\n\nlet request={\n prompt:prompt,\n category:type,\n route:'BudE AI Engine'\n};\n\nlocalStorage.setItem('bude_request',JSON.stringify(request));\n\ndocument.getElementById('output').textContent=JSON.stringify(request,null,2);\n\n}"
         }
     }
 }

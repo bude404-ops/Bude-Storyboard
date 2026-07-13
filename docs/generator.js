@@ -1,12 +1,16 @@
 function generate(){
+
 let prompt=document.getElementById('prompt').value;
 let type=document.getElementById('type').value;
 
-let output={
- type:type,
+let request={
  prompt:prompt,
- status:'BudE generation request received'
+ category:type,
+ route:'BudE AI Engine'
 };
 
-document.getElementById('output').textContent=JSON.stringify(output,null,2);
+localStorage.setItem('bude_request',JSON.stringify(request));
+
+document.getElementById('output').textContent=JSON.stringify(request,null,2);
+
 }
