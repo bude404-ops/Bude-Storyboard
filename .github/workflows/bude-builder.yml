@@ -1,6 +1,7 @@
-name: BudE Genesis Builder
+name: BudE Genesis And Update System
 
 on:
+
   workflow_dispatch:
 
   push:
@@ -14,96 +15,48 @@ permissions:
 
 jobs:
 
-  build-bude:
-
-    name: Build BudE StoryBoard AI Genesis
+  bude-build:
 
     runs-on: ubuntu-latest
 
 
     steps:
 
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
 
 
-      - name: Verify Genesis Files
-        run: |
-          echo "Checking required files..."
-
-          test -f seed.py
-          test -f blueprint.json
-
-          echo "Genesis files found"
+    - name: Run Genesis Seed
+      run: |
+        python seed.py
 
 
-      - name: Validate Blueprint
-        run: |
-          python -m json.tool blueprint.json > /dev/null
-
-          echo "Blueprint validation complete"
+    - name: Run Update Manager
+      run: |
+        python bude-engine/update_manager.py
 
 
-      - name: Run BudE Seed Builder
-        run: |
-          python seed.py
+    - name: Verify Dashboard
+      run: |
+        test -f dashboard/index.html
+        echo "Dashboard verified"
 
 
-      - name: Display Generated Files
-        run: |
-          echo "Generated BudE Structure:"
-          find . -maxdepth 3 -type f | sort
+    - name: Save Updates
+      run: |
 
+        git config --global user.name "BudE Builder"
 
-      - name: Verify BudE System
-        run: |
-          echo "Checking generated folders..."
+        git config --global user.email "actions@github.com"
 
-          test -d dashboard
-          test -d bude-engine
-          test -d modules
-          test -d projects
-          test -d assets
-          test -d updates
+        git add .
 
-          echo "BudE structure verified"
+        git commit -m "BudE Automated Update" || echo "No changes"
 
-
-      - name: Test BudE Engine
-        run: |
-          if [ -f bude-engine/engine.py ]; then
-            python bude-engine/engine.py
-          else
-            echo "Engine file not found"
-          fi
-
-
-      - name: Commit Generated Files
-        run: |
-
-          git config --global user.name "BudE Builder"
-
-          git config --global user.email "actions@github.com"
-
-
-          git add .
-
-
-          git commit -m "BudE Genesis Generated Build" || echo "No changes to commit"
-
-
-          git push || echo "Nothing to push"
-
-
-      - name: Build Complete
-        run: |
-          echo "================================="
-          echo " BudE StoryBoard AI Genesis v0.1 "
-          echo " Build Complete"
-          echo "================================="
+        git push || echo "Nothing to push"
