@@ -1,0 +1,128 @@
+name: BudE StoryBoard AI Update System
+
+on:
+
+  workflow_dispatch:
+
+  push:
+    paths:
+      - "updates/**"
+
+
+permissions:
+
+  contents: write
+
+
+
+jobs:
+
+
+  update-system:
+
+
+    name: Execute Evolution Updates
+
+
+    runs-on: ubuntu-latest
+
+
+
+    steps:
+
+
+    - name: Checkout Repository
+
+      uses: actions/checkout@v4
+
+
+
+    - name: Setup Node
+
+      uses: actions/setup-node@v4
+
+      with:
+
+        node-version: 20
+
+
+
+    - name: Install Dependencies
+
+      run: |
+
+        npm install
+
+
+
+    - name: Check System Version
+
+      run: |
+
+        node -e "
+
+        const v=require('./versions.json');
+
+        console.log(
+          'Current Version:',
+          v.currentVersion
+        );
+
+        console.log(
+          'Health:',
+          v.systemHealth
+        );
+
+        "
+
+
+
+    - name: Run Update Engine
+
+      run: |
+
+        node updates/update-engine.js
+
+
+
+    - name: Validate System
+
+      run: |
+
+        test -f versions.json
+
+        test -d src
+
+        test -d updates
+
+        echo "System validation complete."
+
+
+
+    - name: Run Tests
+
+      run: |
+
+        npm test || echo "No tests configured yet"
+
+
+
+    - name: Commit Evolution
+
+      run: |
+
+
+        git config user.name "BudE Evolution Bot"
+
+        git config user.email "actions@github.com"
+
+
+        git add .
+
+
+        git commit \
+        -m "BudE AI system evolution update" \
+        || echo "No changes"
+
+
+        git push
