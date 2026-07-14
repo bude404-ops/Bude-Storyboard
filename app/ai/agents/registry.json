@@ -1,0 +1,15 @@
+{
+  "agents": [
+    "ExecutiveAI",
+    "StoryArchitect",
+    "WorldBuilder",
+    "CharacterCreator",
+    "ScriptWriter",
+    "StoryboardDirector",
+    "MediaGenerator",
+    "VoiceDirector",
+    "MusicComposer",
+    "VideoEditor",
+    "QualityController"
+  ]
+}
