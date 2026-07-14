@@ -5,9 +5,13 @@ import ReactDOM from "react-dom/client";
 import App from "./dashboard/App";
 
 
-ReactDOM.createRoot(
-document.getElementById("root")!
-)
+const root =
+document.getElementById("root");
+
+
+if(root){
+
+ReactDOM.createRoot(root)
 .render(
 
 <React.StrictMode>
@@ -17,3 +21,12 @@ document.getElementById("root")!
 </React.StrictMode>
 
 );
+
+}
+else{
+
+console.error(
+"BudE Dashboard Root Missing"
+);
+
+}
