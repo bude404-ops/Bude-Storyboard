@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>BudE StoryBoard AI</title>
+
+<style>
+
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#050814;
+    color:white;
+}
+
+header{
+    padding:20px;
+    background:#10182d;
+    border-bottom:1px solid #26304d;
+}
+
+h1{
+    margin:0;
+    font-size:28px;
+}
+
+.status{
+    color:#00ff99;
+}
+
+
+.container{
+    padding:15px;
+    display:grid;
+    gap:15px;
+}
+
+
+.card{
+
+    background:#10182d;
+    border-radius:15px;
+    padding:20px;
+    border:1px solid #26304d;
+
+}
+
+
+.progress{
+
+height:20px;
+background:#050814;
+border-radius:20px;
+overflow:hidden;
+
+}
+
+
+.bar{
+
+height:100%;
+width:35%;
+background:#00ff99;
+
+}
+
+
+button{
+
+padding:12px;
+border:none;
+border-radius:10px;
+background:#00ff99;
+font-weight:bold;
+
+}
+
+
+.grid{
+
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:15px;
+
+}
+
+
+.agent{
+
+padding:12px;
+background:#18233f;
+border-radius:10px;
+
+}
+
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+<h1>🧠 BudE StoryBoard AI</h1>
+
+<p class="status">
+System Online
+</p>
+
+</header>
+
+
+
+<div class="container">
+
+
+<div class="card">
+
+<h2>Creative Pipeline</h2>
+
+<div class="progress">
+
+<div class="bar"></div>
+
+</div>
+
+<p>
+Idea → Story → Characters → World → Script → Scenes → Video
+</p>
+
+</div>
+
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<h2>Projects</h2>
+
+<p>
+No active projects
+</p>
+
+<button>
+Create Story
+</button>
+
+</div>
+
+
+
+<div class="card">
+
+<h2>AI Agents</h2>
+
+<div class="agent">
+🧠 Executive AI - Ready
+</div>
+
+<div class="agent">
+✍️ Story Writer - Ready
+</div>
+
+<div class="agent">
+🎬 Director - Ready
+</div>
+
+<div class="agent">
+🎨 Media Generator - Ready
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<h2>Production Studio</h2>
+
+<p>
+Images: Waiting
+</p>
+
+<p>
+Video: Waiting
+</p>
+
+<p>
+Audio: Waiting
+</p>
+
+</div>
+
+
+
+<div class="card">
+
+<h2>System</h2>
+
+<p>
+Version: Genesis 1.0
+</p>
+
+<p>
+Update Engine: Active
+</p>
+
+<p>
+GitHub Pages: Online
+</p>
+
+</div>
+
+
+</div>
+
+
+<div class="card">
+
+<h2>AI Console</h2>
+
+<p id="console">
+
+BudE initialized...
+
+</p>
+
+</div>
+
+
+
+</div>
+
+
+<script>
+
+
+const messages=[
+
+"Analyzing creative modules...",
+"Checking AI agents...",
+"Monitoring workflow...",
+"Ready for new story projects."
+
+];
+
+
+let i=0;
+
+
+setInterval(()=>{
+
+document.getElementById("console").innerHTML =
+messages[i];
+
+i++;
+
+if(i>=messages.length){
+i=0;
+}
+
+},3000);
+
+
+
+</script>
+
+
+</body>
+</html>
