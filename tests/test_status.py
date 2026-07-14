@@ -1,1 +1,0 @@
-print('BudE Test System Ready')
