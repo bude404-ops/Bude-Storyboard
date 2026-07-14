@@ -1,0 +1,99 @@
+name: BudE StoryBoard AI Builder
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+
+    - name: Check Genesis Status
+      id: genesis
+      run: |
+
+        if [ -f ".bude/initialized.json" ]; then
+
+          echo "initialized=true" >> $GITHUB_OUTPUT
+
+        else
+
+          echo "initialized=false" >> $GITHUB_OUTPUT
+
+        fi
+
+
+
+    - name: Run Genesis Seed
+      if: steps.genesis.outputs.initialized == 'false'
+      run: |
+
+        echo "🚀 Running BudE Genesis"
+
+        node seed.js
+
+
+
+    - name: Run Update Engine
+      if: steps.genesis.outputs.initialized == 'true'
+      run: |
+
+        echo "🧠 Running BudE Update"
+
+        node update.js
+
+
+
+    - name: Commit Generated Changes
+      run: |
+
+        git config --global user.name "BudE AI"
+        git config --global user.email "bude-ai@github.com"
+
+        git add .
+
+        git diff --cached --quiet || git commit -m "BudE automated update"
+
+        git push
+
+
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v5
+
+
+
+    - name: Upload Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+
+        path: ./
+
+
+
+    - name: Deploy Pages
+      uses: actions/deploy-pages@v4
