@@ -1,7 +1,7 @@
 {
   "seedComplete": true,
   "seedRetired": true,
-  "currentVersion": "0.13",
+  "currentVersion": "0.14",
   "installedModules": [],
   "completedUpdates": [
     "update-v001.js",
@@ -15,9 +15,10 @@
     "update-v0018.js",
     "update-v0019.js",
     "update-v0020.js",
-    "update-v0021.js"
+    "update-v0021.js",
+    "update-v0022.js"
   ],
   "systemHealth": "healthy",
   "created": "2026-07-14T19:00:39.671Z",
-  "lastUpdate": "2026-07-14T23:25:50.100Z"
+  "lastUpdate": "2026-07-14T23:28:14.138Z"
 }

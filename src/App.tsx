@@ -2,128 +2,156 @@
 import "./styles.css";
 
 
+const agents = [
+
+"Executive AI",
+"Story Architect AI",
+"World Builder AI",
+"Character AI",
+"Script AI",
+"Storyboard AI",
+"Media AI",
+"Voice AI",
+"Music AI",
+"Editor AI"
+
+];
+
+
 export default function App(){
+
 
 return (
 
-<div className="app">
+<div className="layout">
 
 
-<header>
+<aside>
+
+<h2>
+BudE AI
+</h2>
+
+
+<nav>
+
+<button>Dashboard</button>
+
+<button>Projects</button>
+
+<button>Characters</button>
+
+<button>Worlds</button>
+
+<button>Episodes</button>
+
+<button>Production</button>
+
+<button>Plugins</button>
+
+</nav>
+
+
+</aside>
+
+
+
+<main>
+
 
 <h1>
-BudE StoryBoard AI
+StoryBoard AI Studio
 </h1>
 
-<p>
-AI Creative Production Studio
-</p>
 
-</header>
+<div className="cards">
 
 
+<section className="card">
 
-<section className="grid">
-
-
-<div className="card">
-
-<h2>
-Project Center
-</h2>
-
-<p>
-Create and manage stories, episodes, and productions.
-</p>
-
-<button>
-New Project
-</button>
-
-</div>
-
-
-
-<div className="card">
-
-<h2>
+<h3>
 AI Command Center
-</h2>
+</h3>
+
 
 <p>
-Agents online:
-10
+Agents Online: {agents.length}
 </p>
-
-<p>
-Status:
-ONLINE
-</p>
-
-</div>
-
-
-
-<div className="card">
-
-<h2>
-Story Database
-</h2>
-
-<p>
-Characters
-</p>
-
-<p>
-Worlds
-</p>
-
-<p>
-Lore
-</p>
-
-<p>
-Scripts
-</p>
-
-</div>
-
-
-
-<div className="card">
-
-<h2>
-Production Pipeline
-</h2>
-
-<p>
-Storyboard → Media → Voice → Edit
-</p>
-
-</div>
-
-
-
-<div className="card">
-
-<h2>
-System Health
-</h2>
-
-<p>
-Genesis:
-Complete
-</p>
-
-<p>
-Updates:
-Active
-</p>
-
-</div>
 
 
 </section>
+
+
+
+<section className="card">
+
+<h3>
+Project Center
+</h3>
+
+<p>
+Create and manage creative productions.
+</p>
+
+</section>
+
+
+
+<section className="card">
+
+<h3>
+Production Pipeline
+</h3>
+
+<p>
+Concept → Story → Media → Export
+</p>
+
+</section>
+
+
+
+<section className="card">
+
+<h3>
+System Status
+</h3>
+
+<p>
+Genesis: Complete
+</p>
+
+<p>
+Evolution: Active
+</p>
+
+</section>
+
+
+</div>
+
+
+
+<section className="card">
+
+<h3>
+AI Agents
+</h3>
+
+
+{agents.map(agent=>(
+
+<p key={agent}>
+🟢 {agent} Online
+</p>
+
+))}
+
+
+</section>
+
+
+</main>
 
 
 </div>
