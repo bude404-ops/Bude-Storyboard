@@ -1,12 +1,23 @@
 
 export default function ProductionPanel(){
 
-return <section>
+return (
 
-<h2>Production</h2>
+<div className="rounded-xl bg-zinc-900 p-5">
 
-<p>Storyboard and media queue.</p>
+<h2 className="text-xl font-bold">
 
-</section>
+Production
+
+</h2>
+
+<p>
+Storyboard • Media • Timeline
+
+</p>
+
+</div>
+
+);
 
 }

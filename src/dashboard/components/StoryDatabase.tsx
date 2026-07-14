@@ -1,12 +1,23 @@
 
 export default function StoryDatabase(){
 
-return <section>
+return (
 
-<h2>Story Database</h2>
+<div className="rounded-xl bg-zinc-900 p-5">
 
-<p>Characters, worlds, lore.</p>
+<h2 className="text-xl font-bold">
 
-</section>
+Story Database
+
+</h2>
+
+<p>
+Characters • Worlds • Lore • Scripts
+
+</p>
+
+</div>
+
+);
 
 }

@@ -1,12 +1,22 @@
 
 export default function ProjectCenter(){
 
-return <section>
+return (
 
-<h2>Project Center</h2>
+<div className="rounded-xl bg-zinc-900 p-5">
 
-<p>Create and manage stories.</p>
+<h2 className="text-xl font-bold">
 
-</section>
+Project Center
+
+</h2>
+
+<p>
+Create and manage stories.
+</p>
+
+</div>
+
+);
 
 }

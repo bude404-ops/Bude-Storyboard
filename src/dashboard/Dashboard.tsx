@@ -12,12 +12,20 @@ return (
 
 <div className="min-h-screen bg-black text-white p-6">
 
-<h1 className="text-3xl font-bold">
-BudE StoryBoard AI Studio
+
+<h1 className="text-4xl font-bold mb-8">
+
+BudE StoryBoard AI
+
 </h1>
 
 
-<div className="grid gap-5 md:grid-cols-2 mt-6">
+<div className="
+grid
+gap-6
+md:grid-cols-2
+">
+
 
 <ProjectCenter />
 
@@ -29,7 +37,9 @@ BudE StoryBoard AI Studio
 
 <SystemStatus />
 
+
 </div>
+
 
 </div>
 

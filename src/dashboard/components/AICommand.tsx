@@ -1,12 +1,22 @@
 
 export default function AICommand(){
 
-return <section>
+return (
 
-<h2>AI Command</h2>
+<div className="rounded-xl bg-zinc-900 p-5">
 
-<p>Agents waiting.</p>
+<h2 className="text-xl font-bold">
 
-</section>
+AI Command
+
+</h2>
+
+<p>
+Agents ready.
+</p>
+
+</div>
+
+);
 
 }

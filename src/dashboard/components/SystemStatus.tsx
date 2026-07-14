@@ -1,12 +1,23 @@
 
 export default function SystemStatus(){
 
-return <section>
+return (
 
-<h2>System Status</h2>
+<div className="rounded-xl bg-zinc-900 p-5">
 
-<p>Online</p>
+<h2 className="text-xl font-bold">
 
-</section>
+System Status
+
+</h2>
+
+<p>
+BudE Core Online
+
+</p>
+
+</div>
+
+);
 
 }
