@@ -1,34 +1,130 @@
 
+import "./styles.css";
+
+
 export default function App(){
 
 return (
 
-<div className="min-h-screen bg-black text-white p-8">
+<div className="app">
 
-<h1 className="text-4xl font-bold">
+
+<header>
+
+<h1>
 BudE StoryBoard AI
 </h1>
 
-<p className="mt-4 text-gray-400">
-AI Creative Studio System Online
+<p>
+AI Creative Production Studio
 </p>
 
+</header>
 
-<div className="mt-8 grid gap-4">
 
-<div className="border border-gray-700 rounded p-4">
-Executive AI
+
+<section className="grid">
+
+
+<div className="card">
+
+<h2>
+Project Center
+</h2>
+
+<p>
+Create and manage stories, episodes, and productions.
+</p>
+
+<button>
+New Project
+</button>
+
 </div>
 
-<div className="border border-gray-700 rounded p-4">
-Story Architect AI
+
+
+<div className="card">
+
+<h2>
+AI Command Center
+</h2>
+
+<p>
+Agents online:
+10
+</p>
+
+<p>
+Status:
+ONLINE
+</p>
+
 </div>
 
-<div className="border border-gray-700 rounded p-4">
+
+
+<div className="card">
+
+<h2>
+Story Database
+</h2>
+
+<p>
+Characters
+</p>
+
+<p>
+Worlds
+</p>
+
+<p>
+Lore
+</p>
+
+<p>
+Scripts
+</p>
+
+</div>
+
+
+
+<div className="card">
+
+<h2>
 Production Pipeline
-</div>
+</h2>
+
+<p>
+Storyboard → Media → Voice → Edit
+</p>
 
 </div>
+
+
+
+<div className="card">
+
+<h2>
+System Health
+</h2>
+
+<p>
+Genesis:
+Complete
+</p>
+
+<p>
+Updates:
+Active
+</p>
+
+</div>
+
+
+</section>
+
 
 </div>
 
