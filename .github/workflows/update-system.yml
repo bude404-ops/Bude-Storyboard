@@ -10,75 +10,44 @@ on:
 
 
 permissions:
-
   contents: write
-
 
 
 jobs:
 
-
   update-system:
-
 
     name: Execute Evolution Updates
 
-
     runs-on: ubuntu-latest
-
 
 
     steps:
 
 
     - name: Checkout Repository
-
       uses: actions/checkout@v4
 
 
-
     - name: Setup Node
-
       uses: actions/setup-node@v4
-
       with:
-
         node-version: 20
 
 
-
-    - name: Install Dependencies
-
+    - name: Check Project Type
       run: |
 
-        npm install
-
-
-
-    - name: Check System Version
-
-      run: |
-
-        node -e "
-
-        const v=require('./versions.json');
-
-        console.log(
-          'Current Version:',
-          v.currentVersion
-        );
-
-        console.log(
-          'Health:',
-          v.systemHealth
-        );
-
-        "
+        if [ -f package.json ]; then
+          echo "Node project detected"
+          npm install
+        else
+          echo "Foundation stage - skipping npm install"
+        fi
 
 
 
     - name: Run Update Engine
-
       run: |
 
         node updates/update-engine.js
@@ -86,24 +55,24 @@ jobs:
 
 
     - name: Validate System
-
       run: |
 
         test -f versions.json
-
         test -d src
-
         test -d updates
 
-        echo "System validation complete."
+        echo "Validation complete"
 
 
 
     - name: Run Tests
-
       run: |
 
-        npm test || echo "No tests configured yet"
+        if [ -f package.json ]; then
+          npm test || echo "No tests configured"
+        else
+          echo "No npm project yet"
+        fi
 
 
 
@@ -111,18 +80,11 @@ jobs:
 
       run: |
 
-
         git config user.name "BudE Evolution Bot"
-
         git config user.email "actions@github.com"
-
 
         git add .
 
-
-        git commit \
-        -m "BudE AI system evolution update" \
-        || echo "No changes"
-
+        git commit -m "BudE system evolution update" || echo "No changes"
 
         git push
