@@ -9,10 +9,6 @@ plugins:[
 react()
 ],
 
-base:"./",
-
-build:{
-outDir:"docs"
-}
+base:"./"
 
 });
