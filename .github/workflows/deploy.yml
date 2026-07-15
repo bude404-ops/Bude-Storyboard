@@ -1,10 +1,6 @@
 name: BudE StoryBoard AI Deploy
 
 on:
-  push:
-    branches:
-      
-
   workflow_dispatch:
 
 
