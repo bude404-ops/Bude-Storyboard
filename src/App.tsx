@@ -1,5 +1,21 @@
-import Dashboard from "./Dashboard";
+export default function App(){
 
-export default function App() {
-  return <Dashboard />;
+return (
+
+<div style={{
+height:"100vh",
+background:"black",
+color:"lime",
+fontSize:"60px",
+display:"flex",
+alignItems:"center",
+justifyContent:"center"
+}}>
+
+BUDE DEPLOY TEST WORKING
+
+</div>
+
+);
+
 }
