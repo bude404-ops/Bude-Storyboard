@@ -45,12 +45,15 @@ function loadVersion(){
 function saveVersion(version){
 
     fs.writeFileSync(
+
         VERSION_FILE,
+
         JSON.stringify(
             version,
             null,
             2
         )
+
     );
 
 }
@@ -108,6 +111,40 @@ function executeUpdate(file){
 
 
 
+function calculateHighestVersion(version){
+
+    let highest = 0;
+
+
+    version.completedUpdates.forEach(file=>{
+
+        const match =
+            file.match(/update-v0*(\d+)/);
+
+
+        if(match){
+
+            const number =
+                parseInt(match[1]);
+
+
+            if(number > highest){
+
+                highest = number;
+
+            }
+
+        }
+
+    });
+
+
+    return highest;
+
+}
+
+
+
 function run(){
 
     console.log(
@@ -123,6 +160,14 @@ function run(){
     if(!version.completedUpdates){
 
         version.completedUpdates = [];
+
+    }
+
+
+
+    if(!version.installedModules){
+
+        version.installedModules = [];
 
     }
 
@@ -149,9 +194,16 @@ function run(){
 
 
 
-            version.completedUpdates.push(
-                file
-            );
+            if(
+                !version.completedUpdates.includes(file)
+            ){
+
+                version.completedUpdates.push(
+                    file
+                );
+
+            }
+
 
 
             saveVersion(version);
@@ -174,7 +226,7 @@ function run(){
 
 
             console.error(
-                error.message
+                error.stack
             );
 
 
@@ -186,8 +238,13 @@ function run(){
 
 
 
+    const highestVersion =
+        calculateHighestVersion(version);
+
+
+
     version.currentVersion =
-        `0.${version.completedUpdates.length}`;
+        `0.${highestVersion}`;
 
 
     version.systemHealth =
