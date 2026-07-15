@@ -178,7 +178,7 @@ function run(){
             );
 
 
-            break;
+            continue;
 
         }
 
