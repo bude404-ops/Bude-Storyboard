@@ -1,140 +1,61 @@
-/**
- * BudE StoryBoard AI
- * Update Evolution Engine v2
- *
- * Genesis creates.
- * Updates evolve.
- *
- * Safe execution system.
- */
 
-const fs = require("fs");
-const path = require("path");
 
-const ROOT = path.join(__dirname,"..");
+const fs=require("fs");
+const path=require("path");
 
-const VERSION_FILE =
+
+const ROOT=path.join(__dirname,"..");
+
+const VERSION=
 path.join(ROOT,"versions.json");
 
-const UPDATE_FOLDER = __dirname;
+
+const PENDING=
+path.join(ROOT,"updates/pending");
+
+
+const COMPLETED=
+path.join(ROOT,"updates/completed");
+
+
+const FAILED=
+path.join(ROOT,"updates/failed");
 
 
 
 function loadVersion(){
 
-    if(!fs.existsSync(VERSION_FILE)){
-
-        throw new Error(
-            "versions.json missing. Run Genesis first."
-        );
-
-    }
-
-
-    return JSON.parse(
-        fs.readFileSync(
-            VERSION_FILE,
-            "utf8"
-        )
-    );
+return JSON.parse(
+fs.readFileSync(
+VERSION,
+"utf8"
+)
+);
 
 }
 
 
 
-function saveVersion(version){
+function saveVersion(v){
 
-    fs.writeFileSync(
-        VERSION_FILE,
-        JSON.stringify(
-            version,
-            null,
-            2
-        )
-    );
+fs.writeFileSync(
+VERSION,
+JSON.stringify(v,null,2)
+);
 
 }
 
 
 
-function findUpdates(){
+function move(file,folder){
 
-    return fs.readdirSync(UPDATE_FOLDER)
+fs.renameSync(
 
-    .filter(file =>
-        file.startsWith("update-v") &&
-        file.endsWith(".js")
-    )
+path.join(PENDING,file),
 
-    .sort();
+path.join(folder,file)
 
-}
-
-
-
-function executeUpdate(file,version){
-
-    console.log(
-        `Running ${file}`
-    );
-
-
-    try{
-
-
-        const update =
-        require(
-            path.join(
-                UPDATE_FOLDER,
-                file
-            )
-        );
-
-
-        if(typeof update.run !== "function"){
-
-            throw new Error(
-                "Missing run() function"
-            );
-
-        }
-
-
-        update.run();
-
-
-        version.completedUpdates.push(file);
-
-
-        console.log(
-            `${file} complete`
-        );
-
-
-    }
-
-    catch(error){
-
-        console.error(
-            `FAILED: ${file}`
-        );
-
-
-        console.error(
-            error.message
-        );
-
-
-        version.systemHealth =
-        "degraded";
-
-
-        saveVersion(version);
-
-
-        process.exit(1);
-
-    }
+);
 
 }
 
@@ -142,41 +63,109 @@ function executeUpdate(file,version){
 
 function run(){
 
+
 console.log(
-"BudE Update Engine Starting..."
+"BudE Evolution Queue Active"
 );
 
 
-const version =
+
+let version =
 loadVersion();
 
 
 
-if(!version.completedUpdates){
+if(!fs.existsSync(PENDING)){
 
-version.completedUpdates=[];
+console.log(
+"No pending updates"
+);
+
+return;
 
 }
 
 
 
 const updates =
-findUpdates();
-
-
-
-for(const update of updates){
-
-
-if(
-!version.completedUpdates.includes(update)
-){
-
-
-executeUpdate(
-update,
-version
+fs.readdirSync(PENDING)
+.filter(
+f=>f.endsWith(".js")
 );
+
+
+
+for(const file of updates){
+
+
+try{
+
+
+console.log(
+"Executing:",
+file
+);
+
+
+
+const update =
+require(
+path.join(PENDING,file)
+);
+
+
+
+if(typeof update.run !== "function"){
+
+throw new Error(
+"Missing run()"
+);
+
+}
+
+
+
+update.run();
+
+
+
+version.completedUpdates.push(
+file
+);
+
+
+
+move(
+file,
+COMPLETED
+);
+
+
+
+console.log(
+"Completed:",
+file
+);
+
+
+
+}
+
+catch(error){
+
+
+console.error(
+"Failed:",
+error.message
+);
+
+
+
+move(
+file,
+FAILED
+);
+
 
 
 }
@@ -186,7 +175,7 @@ version
 
 
 version.currentVersion =
-`0.${version.completedUpdates.length + 1}`;
+"0.66";
 
 
 version.systemHealth =
@@ -197,12 +186,9 @@ version.lastUpdate =
 new Date().toISOString();
 
 
+
 saveVersion(version);
 
-
-console.log(
-"Update Evolution Complete"
-);
 
 
 }
@@ -210,3 +196,4 @@ console.log(
 
 
 run();
+
