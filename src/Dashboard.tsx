@@ -1,80 +1,92 @@
+
+
 import "./styles.css";
 
-const agents = [
-  "Executive AI",
-  "Story Architect AI",
-  "World Builder AI",
-  "Character AI",
-  "Script AI",
-  "Storyboard AI",
-  "Media AI",
-  "Voice AI",
-  "Music AI",
-  "Editor AI"
-];
 
-export default function Dashboard() {
-
-  return (
-    <div className="app">
-
-      <h1>
-        BudE StoryBoard AI
-      </h1>
-
-      <p>
-        AI Creative Production Studio Online
-      </p>
-
-      <div className="grid">
-
-        <div className="card">
-          <h2>Project Center</h2>
-          <p>Create and manage stories.</p>
-        </div>
+export default function Dashboard(){
 
 
-        <div className="card">
-          <h2>AI Command Center</h2>
-          <p>Agents Online: {agents.length}</p>
-        </div>
+return (
+
+<div className="app">
 
 
-        <div className="card">
-          <h2>Story Database</h2>
-          <p>Characters • Worlds • Lore • Episodes</p>
-        </div>
+<h1>
+BudE StoryBoard AI
+</h1>
 
 
-        <div className="card">
-          <h2>Production Pipeline</h2>
-          <p>
-            Concept → Story → Script → Media → Export
-          </p>
-        </div>
+<p>
+AI Creative Studio Online
+</p>
 
 
-        <div className="card">
-          <h2>System Status</h2>
-          <p>Genesis Complete</p>
-          <p>Evolution Active</p>
-        </div>
 
-      </div>
+<div className="grid">
 
 
-      <div className="card">
+<div className="card">
 
-        <h2>AI Agents</h2>
+<h2>
+Project Center
+</h2>
 
-        {agents.map(agent => (
-          <p key={agent}>
-            🟢 {agent}
-          </p>
-        ))}
+<p>
+Create and manage productions
+</p>
 
-      </div>
+</div>
 
-    </div>
-  );
+
+
+<div className="card">
+
+<h2>
+AI Command
+</h2>
+
+<p>
+Agents ready
+</p>
+
+</div>
+
+
+
+<div className="card">
+
+<h2>
+Story Engine
+</h2>
+
+<p>
+Worlds, characters, scripts
+</p>
+
+</div>
+
+
+
+<div className="card">
+
+<h2>
+Production
+</h2>
+
+<p>
+Storyboard and media pipeline
+</p>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+);
+
+
 }
+
