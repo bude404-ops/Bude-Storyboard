@@ -1,6 +1,7 @@
 
 
 import "./styles.css";
+import StoryStudio from "./components/StoryStudio";
 
 
 const agents=[
@@ -187,6 +188,10 @@ Project creation module online.
 
 </div>
 
+
+
+
+<StoryStudio />
 
 </main>
 
