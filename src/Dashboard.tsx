@@ -12,6 +12,7 @@ import AgentCenter from "./components/AgentCenter";
 import AICommandCenter from "./components/AICommandCenter";
 import AICommandCenter from "./components/AICommandCenter";
 import AICommandCenter from "./components/AICommandCenter";
+import AICommandCenter from "./components/AICommandCenter";
 
 
 const agents=[
@@ -216,6 +217,8 @@ Project creation module online.
 <MediaStudio />
 
 <AgentCenter />
+
+<AICommandCenter />
 
 <AICommandCenter />
 
