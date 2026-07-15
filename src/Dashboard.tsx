@@ -173,6 +173,21 @@ agents.map(agent=>(
 </div>
 
 
+
+
+<div className="card">
+
+<h2>
+Creative Workspace
+</h2>
+
+<p>
+Project creation module online.
+</p>
+
+</div>
+
+
 </main>
 
 

@@ -4,81 +4,37 @@ export interface Project {
 
 id:string;
 
-title:string;
+name:string;
 
 description:string;
 
 created:string;
-
-status:string;
-
-}
-
-
-
-const KEY =
-"bude_projects";
-
-
-
-export function getProjects():Project[]{
-
-
-const data =
-localStorage.getItem(KEY);
-
-
-return data
-?
-JSON.parse(data)
-:
-[];
 
 }
 
 
 
 export function createProject(
-title:string,
+name:string,
 description:string
-){
+):Project{
 
 
-const projects =
-getProjects();
-
-
-
-const project:Project={
+return {
 
 id:
-Date.now().toString(),
+crypto.randomUUID(),
 
-title,
+name,
 
 description,
 
 created:
-new Date().toISOString(),
-
-status:
-"Development"
+new Date().toISOString()
 
 };
 
 
-
-projects.push(project);
-
-
-
-localStorage.setItem(
-KEY,
-JSON.stringify(projects)
-);
-
-
-return project;
-
 }
+
 
