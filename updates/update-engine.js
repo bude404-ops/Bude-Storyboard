@@ -1,33 +1,19 @@
+const fs = require("fs");
+const path = require("path");
 
+const ROOT = path.join(__dirname,"..");
 
-const fs=require("fs");
-const path=require("path");
-
-
-const ROOT=path.join(__dirname,"..");
-
-const VERSION=
+const VERSION_FILE =
 path.join(ROOT,"versions.json");
 
-
-const PENDING=
-path.join(ROOT,"updates/pending");
-
-
-const COMPLETED=
-path.join(ROOT,"updates/completed");
-
-
-const FAILED=
-path.join(ROOT,"updates/failed");
-
+const UPDATE_FOLDER = __dirname;
 
 
 function loadVersion(){
 
 return JSON.parse(
 fs.readFileSync(
-VERSION,
+VERSION_FILE,
 "utf8"
 )
 );
@@ -36,25 +22,34 @@ VERSION,
 
 
 
-function saveVersion(v){
+function saveVersion(version){
 
 fs.writeFileSync(
-VERSION,
-JSON.stringify(v,null,2)
+VERSION_FILE,
+JSON.stringify(
+version,
+null,
+2
+)
 );
 
 }
 
 
 
-function move(file,folder){
+function findUpdates(version){
 
-fs.renameSync(
+return fs.readdirSync(UPDATE_FOLDER)
 
-path.join(PENDING,file),
+.filter(file =>
+file.startsWith("update-v") &&
+file.endsWith(".js")
+)
 
-path.join(folder,file)
+.sort()
 
+.filter(file =>
+!version.completedUpdates.includes(file)
 );
 
 }
@@ -63,11 +58,9 @@ path.join(folder,file)
 
 function run(){
 
-
 console.log(
-"BudE Evolution Queue Active"
+"BudE Evolution Engine Starting..."
 );
-
 
 
 let version =
@@ -75,44 +68,43 @@ loadVersion();
 
 
 
-if(!fs.existsSync(PENDING)){
+if(!version.completedUpdates){
 
-console.log(
-"No pending updates"
-);
-
-return;
+version.completedUpdates=[];
 
 }
 
 
 
 const updates =
-fs.readdirSync(PENDING)
-.filter(
-f=>f.endsWith(".js")
+findUpdates(version);
+
+
+
+console.log(
+"Pending updates:",
+updates.length
 );
 
 
 
 for(const file of updates){
 
-
 try{
 
-
 console.log(
-"Executing:",
+"Running:",
 file
 );
 
 
-
 const update =
 require(
-path.join(PENDING,file)
+path.join(
+UPDATE_FOLDER,
+file
+)
 );
-
 
 
 if(typeof update.run !== "function"){
@@ -124,9 +116,7 @@ throw new Error(
 }
 
 
-
 update.run();
-
 
 
 version.completedUpdates.push(
@@ -134,12 +124,7 @@ file
 );
 
 
-
-move(
-file,
-COMPLETED
-);
-
+saveVersion(version);
 
 
 console.log(
@@ -148,25 +133,20 @@ file
 );
 
 
-
 }
 
 catch(error){
 
+console.error(
+"FAILED:",
+file
+);
 
 console.error(
-"Failed:",
 error.message
 );
 
-
-
-move(
-file,
-FAILED
-);
-
-
+break;
 
 }
 
@@ -175,7 +155,7 @@ FAILED
 
 
 version.currentVersion =
-"0.66";
+"0."+version.completedUpdates.length;
 
 
 version.systemHealth =
@@ -186,14 +166,15 @@ version.lastUpdate =
 new Date().toISOString();
 
 
-
 saveVersion(version);
 
+
+console.log(
+"Evolution Complete"
+);
 
 
 }
 
 
-
 run();
-
